@@ -79,15 +79,50 @@ const Dashboard = () => {
               <h3 className="text-[16px] font-bold text-black font-sofia-pro uppercase tracking-widest">Recent Orders</h3>
               <button className="text-[12px] font-bold text-black font-sofia-pro hover:underline">View All</button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[500px] md:min-w-0">
+            {/* Mobile View: Cards */}
+            <div className="md:hidden flex flex-col divide-y divide-gray-50">
+              {loading ? (
+                <div className="py-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+                </div>
+              ) : recentOrders.length === 0 ? (
+                <div className="py-8 text-center text-black/40 font-sofia-pro text-[13px]">No recent orders.</div>
+              ) : (
+                recentOrders.map((order) => (
+                  <div key={order._id} className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[13px] font-bold text-black font-gt-walsheim">#{order._id.slice(-4)}</span>
+                      <span className={`px-2 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest font-sofia-pro ${
+                        order.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                        order.status === 'processing' ? 'bg-blue-50 text-blue-600' :
+                        order.status === 'delivered' ? 'bg-green-50 text-green-600' :
+                        'bg-red-50 text-red-600'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-[13px] font-medium text-black font-sofia-pro">{order.userId}</p>
+                        <p className="text-[11px] text-black/40 font-sofia-pro">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      </div>
+                      <p className="text-[14px] font-bold text-black font-sofia-pro">${order.amount}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Desktop View: Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
                 <thead>
                   <tr className="bg-gray-50/50">
-                    <th className="px-4 md:px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden sm:table-cell">Order ID</th>
-                    <th className="px-4 md:px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Customer</th>
-                    <th className="px-4 md:px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
-                    <th className="px-4 md:px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Total</th>
-                    <th className="px-4 md:px-6 py-4"></th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Order ID</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Customer</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
+                    <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Total</th>
+                    <th className="px-6 py-4"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -104,13 +139,13 @@ const Dashboard = () => {
                   ) : (
                     recentOrders.map((order) => (
                       <tr key={order._id} className="hover:bg-gray-50/30 transition-colors">
-                        <td className="px-4 md:px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim hidden sm:table-cell">#{order._id.slice(-4)}</td>
-                        <td className="px-4 md:px-6 py-4">
-                          <p className="text-[13px] font-medium text-black font-sofia-pro truncate max-w-[100px] md:max-w-none">{order.userId}</p>
-                          <p className="text-[11px] text-black/40 font-sofia-pro hidden xs:block">{new Date(order.createdAt).toLocaleDateString()}</p>
+                        <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">#{order._id.slice(-4)}</td>
+                        <td className="px-6 py-4">
+                          <p className="text-[13px] font-medium text-black font-sofia-pro">{order.userId}</p>
+                          <p className="text-[11px] text-black/40 font-sofia-pro">{new Date(order.createdAt).toLocaleDateString()}</p>
                         </td>
-                        <td className="px-4 md:px-6 py-4">
-                          <span className={`px-2 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
                             order.status === 'pending' ? 'bg-orange-50 text-orange-600' :
                             order.status === 'processing' ? 'bg-blue-50 text-blue-600' :
                             order.status === 'delivered' ? 'bg-green-50 text-green-600' :
@@ -119,8 +154,8 @@ const Dashboard = () => {
                             {order.status}
                           </span>
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-[13px] font-bold text-black font-sofia-pro">${order.amount}</td>
-                        <td className="px-4 md:px-6 py-4 text-right">
+                        <td className="px-6 py-4 text-[13px] font-bold text-black font-sofia-pro">${order.amount}</td>
+                        <td className="px-6 py-4 text-right">
                           <button className="text-black/20 hover:text-black transition-colors"><FiMoreHorizontal /></button>
                         </td>
                       </tr>

@@ -89,8 +89,52 @@ const Blogs = () => {
           </button>
         </div>
 
-        {/* Blogs Table */}
-        <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
+        {/* Mobile View: Blog Cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {loading ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+            </div>
+          ) : blogs.length === 0 ? (
+            <div className="bg-white p-8 text-center border border-gray-100 text-black/40 font-sofia-pro text-[14px]">No blogs found.</div>
+          ) : (
+            blogs.map((blog) => (
+              <div key={blog._id} className="bg-white border border-gray-100 p-4 rounded-sm flex flex-col gap-4">
+                <div className="flex gap-4">
+                  <div className="w-20 h-24 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
+                    <img 
+                      src={blog.img} 
+                      alt={blog.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[14px] font-bold text-black font-gt-walsheim mb-1">{blog.title}</h3>
+                    <p className="text-[11px] text-black/40 font-sofia-pro mb-2">{blog.date}</p>
+                    <p className="text-[12px] text-black/60 font-sofia-pro line-clamp-2">{blog.desc}</p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+                  <button 
+                    onClick={() => handleEditClick(blog)}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-black/60 hover:text-black font-sofia-pro"
+                  >
+                    <FiEdit2 size={14} /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteClick(blog)}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-red-400 hover:text-red-600 font-sofia-pro"
+                  >
+                    <FiTrash2 size={14} /> Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Blogs Table */}
+        <div className="hidden md:block bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

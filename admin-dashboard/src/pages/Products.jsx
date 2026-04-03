@@ -89,16 +89,67 @@ const Products = () => {
           </button>
         </div>
 
-        {/* Products Table */}
-        <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
+        {/* Mobile View: Product Cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {loading ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="bg-white p-8 text-center border border-gray-100 text-black/40 font-sofia-pro text-[14px]">No products found.</div>
+          ) : (
+            products.map((product) => (
+              <div key={product._id} className="bg-white border border-gray-100 p-4 rounded-sm flex flex-col gap-4">
+                <div className="flex gap-4">
+                  <div className="w-20 h-24 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
+                    <img 
+                      src={Array.isArray(product.img) ? product.img[0] : product.img} 
+                      alt={product.title} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[14px] font-bold text-black font-gt-walsheim mb-1">{product.title}</h3>
+                    <p className="text-[12px] text-black/40 font-sofia-pro truncate mb-2">{product.categories?.join(", ")}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[14px] font-bold text-black font-gt-walsheim">${product.price}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest font-sofia-pro ${
+                        product.countInStock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                      }`}>
+                        {product.countInStock > 0 ? `${product.countInStock} in stock` : "Out of Stock"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+                  <button 
+                    onClick={() => handleEditClick(product)}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-black/60 hover:text-black font-sofia-pro"
+                  >
+                    <FiEdit2 size={14} /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteClick(product)}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-red-400 hover:text-red-600 font-sofia-pro"
+                  >
+                    <FiTrash2 size={14} /> Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Products Table */}
+        <div className="hidden md:block bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px] md:min-w-0">
+            <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Product</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden lg:table-cell">Category</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Category</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Price</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden sm:table-cell">Quantity</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Quantity</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
                   <th className="px-6 py-4"></th>
                 </tr>
@@ -108,39 +159,39 @@ const Products = () => {
                   <tr key={product._id} className="hover:bg-gray-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-12 md:w-12 md:h-14 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
+                        <div className="w-12 h-14 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
                           <img 
                             src={Array.isArray(product.img) ? product.img[0] : product.img} 
                             alt={product.title} 
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                           />
                         </div>
-                        <span className="text-[13px] md:text-[14px] font-bold text-black font-gt-walsheim truncate max-w-[100px] md:max-w-none">{product.title}</span>
+                        <span className="text-[14px] font-bold text-black font-gt-walsheim">{product.title}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden lg:table-cell">{product.categories?.join(", ")}</td>
+                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{product.categories?.join(", ")}</td>
                     <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">${product.price}</td>
-                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden sm:table-cell">
+                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">
                       {product.countInStock || 0}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
                         product.countInStock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                       }`}>
                         {product.countInStock > 0 ? "In Stock" : "Out of Stock"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-1 md:gap-2">
+                      <div className="flex justify-end gap-2">
                         <button 
                           onClick={() => handleEditClick(product)}
-                          className="p-1.5 md:p-2 text-black/20 hover:text-black transition-colors"
+                          className="p-2 text-black/20 hover:text-black transition-colors"
                         >
                           <FiEdit2 size={16} />
                         </button>
                         <button 
                           onClick={() => handleDeleteClick(product)}
-                          className="p-1.5 md:p-2 text-black/20 hover:text-red-500 transition-colors"
+                          className="p-2 text-black/20 hover:text-red-500 transition-colors"
                         >
                           <FiTrash2 size={16} />
                         </button>

@@ -60,7 +60,71 @@ const Coupons = () => {
           </button>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-sm overflow-hidden shadow-sm">
+        {/* Mobile View: Coupon Cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {loading ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+            </div>
+          ) : coupons.length === 0 ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="flex flex-col items-center gap-3 opacity-20">
+                <FiTag size={48} />
+                <p className="text-[14px] font-bold uppercase tracking-widest font-sofia-pro">No coupons found</p>
+              </div>
+            </div>
+          ) : (
+            coupons.map((coupon) => (
+              <div key={coupon._id} className="bg-white border border-gray-100 p-5 rounded-sm flex flex-col gap-4 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[14px] font-bold text-black font-sofia-pro bg-gray-100 px-3 py-1 rounded-sm uppercase tracking-wider">
+                    {coupon.code}
+                  </span>
+                  <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full ${
+                    coupon.isActive 
+                      ? 'bg-green-100 text-green-600' 
+                      : 'bg-red-100 text-red-600'
+                  }`}>
+                    {coupon.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro mb-1">Discount</p>
+                    <p className="text-[16px] font-bold text-black font-sofia-pro">
+                      {coupon.discountType === 'percentage' ? `${coupon.discount}%` : `$${coupon.discount}`}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro mb-1">Expires</p>
+                    <p className="text-[13px] text-black/60 font-sofia-pro">
+                      {new Date(coupon.expiryDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-3 border-t border-gray-50">
+                  <button 
+                    onClick={() => { setEditData(coupon); setIsModalOpen(true); }}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-black/60 hover:text-black font-sofia-pro"
+                  >
+                    <FiEdit2 size={16} /> Edit
+                  </button>
+                  <button 
+                    onClick={() => setDeleteId(coupon._id)}
+                    className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-red-400 hover:text-red-600 font-sofia-pro"
+                  >
+                    <FiTrash2 size={16} /> Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Coupons Table */}
+        <div className="hidden md:block bg-white border border-gray-100 rounded-sm overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>

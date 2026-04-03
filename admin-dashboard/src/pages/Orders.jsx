@@ -43,17 +43,65 @@ const Orders = () => {
           </button>
         </div>
 
-        {/* Orders Table */}
-        <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
+        {/* Mobile View: Order Cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden">
+          {loading ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="bg-white p-8 text-center border border-gray-100 text-black/40 font-sofia-pro text-[14px]">No orders found.</div>
+          ) : (
+            orders.map((order) => (
+              <div key={order._id} className="bg-white border border-gray-100 p-5 rounded-sm flex flex-col gap-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[14px] font-bold text-black font-gt-walsheim">#{order._id.slice(-4)}</span>
+                    <p className="text-[12px] text-black/40 font-sofia-pro mt-1">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
+                    order.status === 'pending' ? 'bg-orange-50 text-orange-600' :
+                    order.status === 'processing' ? 'bg-blue-50 text-blue-600' :
+                    order.status === 'delivered' ? 'bg-green-50 text-green-600' :
+                    'bg-red-50 text-red-600'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center py-3 border-y border-gray-50">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Customer</p>
+                    <p className="text-[13px] font-medium text-black font-sofia-pro">{order.userId}</p>
+                  </div>
+                  <div className="text-right flex flex-col gap-1">
+                    <p className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Total</p>
+                    <p className="text-[14px] font-bold text-black font-gt-walsheim">${order.amount}</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-[12px] text-black/40 font-sofia-pro">{order.products.length} items</span>
+                  <button className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-black hover:underline font-sofia-pro">
+                    <FiEye size={16} /> Details
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Orders Table */}
+        <div className="hidden md:block bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[600px] md:min-w-0">
+            <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden lg:table-cell">Order ID</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Order ID</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Customer</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden sm:table-cell">Date</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Date</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Total</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden md:table-cell">Items</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Items</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
                   <th className="px-6 py-4"></th>
                 </tr>
@@ -72,14 +120,11 @@ const Orders = () => {
                 ) : (
                   orders.map((order) => (
                     <tr key={order._id} className="hover:bg-gray-50/30 transition-colors group">
-                      <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim hidden lg:table-cell">#{order._id.slice(-4)}</td>
-                      <td className="px-6 py-4">
-                        <p className="text-[13px] font-medium text-black font-sofia-pro">{order.userId}</p>
-                        <p className="text-[11px] text-black/40 font-sofia-pro sm:hidden">{new Date(order.createdAt).toLocaleDateString()}</p>
-                      </td>
-                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden sm:table-cell">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">#{order._id.slice(-4)}</td>
+                      <td className="px-6 py-4 text-[13px] font-medium text-black font-sofia-pro">{order.userId}</td>
+                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">${order.amount}</td>
-                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden md:table-cell">{order.products.length} items</td>
+                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{order.products.length} items</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
                           order.status === 'pending' ? 'bg-orange-50 text-orange-600' :
