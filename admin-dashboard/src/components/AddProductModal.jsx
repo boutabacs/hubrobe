@@ -136,8 +136,8 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded, editData }) => {
 
       {/* Modal Content */}
       <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-sm shadow-2xl">
-        <div className="sticky top-0 bg-white z-10 p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-[18px] font-bold uppercase tracking-widest text-black font-sofia-pro">
+        <div className="sticky top-0 bg-white z-10 p-4 md:p-6 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-[16px] md:text-[18px] font-bold uppercase tracking-widest text-black font-sofia-pro">
             {editData ? "Edit Product" : "Add New Product"}
           </h2>
           <button onClick={onClose} className="text-black/40 hover:text-black transition-colors">
@@ -145,7 +145,7 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded, editData }) => {
           </button>
         </div>
 
-        <form onSubmit={handleClick} className="p-8">
+        <form onSubmit={handleClick} className="p-4 md:p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left Column: Basic Info */}
             <div className="flex flex-col gap-6">

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header';
 import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { publicRequest, userRequest } from '../requestMethods';
 import AddBlogModal from '../components/AddBlogModal';
@@ -66,9 +65,7 @@ const Blogs = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Blogs Management" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Actions Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="flex items-center gap-4 w-full md:w-auto">

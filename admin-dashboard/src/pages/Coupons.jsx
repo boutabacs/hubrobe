@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiTrash2, FiEdit2, FiTag } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
-import Header from '../components/Header';
 import AddCouponModal from '../components/AddCouponModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
 
@@ -47,9 +46,7 @@ const Coupons = () => {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen bg-gray-50/50">
-      <Header title="Coupons Management" />
-
-      <main className="p-6 md:p-10">
+      <main className="p-4 md:p-10">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
           <div>
             <h2 className="text-[24px] font-bold text-black font-sofia-pro">All Coupons</h2>

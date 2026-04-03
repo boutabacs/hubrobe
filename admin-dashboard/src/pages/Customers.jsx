@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header';
 import { FiSearch, FiMail, FiPhone, FiMoreHorizontal } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
 
@@ -23,12 +22,10 @@ const Customers = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Customers Database" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Search */}
         <div className="mb-8">
-          <div className="relative md:w-96">
+          <div className="relative w-full md:w-96">
             <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-black/30" />
             <input 
               type="text" 

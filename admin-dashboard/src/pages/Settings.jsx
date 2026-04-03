@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
 import { FiUser, FiGlobe, FiLock, FiBell, FiShield } from 'react-icons/fi';
 
 const Settings = () => {
@@ -14,12 +13,10 @@ const Settings = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Settings" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         <div className="max-w-5xl">
           {/* Tabs */}
-          <div className="flex gap-8 border-b border-gray-100 mb-12">
+          <div className="flex gap-4 md:gap-8 border-b border-gray-100 mb-8 md:mb-12 overflow-x-auto whitespace-nowrap scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header';
 import { FiSearch, FiFilter, FiEye, FiDownload } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
 
@@ -23,9 +22,7 @@ const Orders = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Orders Tracking" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Filters */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="flex items-center gap-4 w-full md:w-auto">
@@ -49,14 +46,14 @@ const Orders = () => {
         {/* Orders Table */}
         <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[600px] md:min-w-0">
               <thead>
                 <tr className="bg-gray-50/50">
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Order ID</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden lg:table-cell">Order ID</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Customer</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Date</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden sm:table-cell">Date</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Total</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Items</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden md:table-cell">Items</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
                   <th className="px-6 py-4"></th>
                 </tr>
@@ -75,11 +72,14 @@ const Orders = () => {
                 ) : (
                   orders.map((order) => (
                     <tr key={order._id} className="hover:bg-gray-50/30 transition-colors group">
-                      <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">#{order._id.slice(-4)}</td>
-                      <td className="px-6 py-4 text-[13px] font-medium text-black font-sofia-pro">{order.userId}</td>
-                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim hidden lg:table-cell">#{order._id.slice(-4)}</td>
+                      <td className="px-6 py-4">
+                        <p className="text-[13px] font-medium text-black font-sofia-pro">{order.userId}</p>
+                        <p className="text-[11px] text-black/40 font-sofia-pro sm:hidden">{new Date(order.createdAt).toLocaleDateString()}</p>
+                      </td>
+                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden sm:table-cell">{new Date(order.createdAt).toLocaleDateString()}</td>
                       <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">${order.amount}</td>
-                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{order.products.length} items</td>
+                      <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden md:table-cell">{order.products.length} items</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
                           order.status === 'pending' ? 'bg-orange-50 text-orange-600' :

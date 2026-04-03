@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
+import Header from './components/Header';
 import ScrollToTop from './components/ScrollToTop';
 import Dashboard from './pages/Dashboard';
 import Products from './pages/Products';
@@ -13,6 +14,7 @@ import Coupons from './pages/Coupons';
 import Login from './pages/Login';
 
 function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const adminToken = localStorage.getItem("adminToken");
 
   if (!adminToken) {
@@ -31,22 +33,30 @@ function App() {
     <Router>
       <ScrollToTop />
       <div className="flex min-h-screen bg-[#F9FAFB]">
-        {/* Fixed Sidebar */}
-        <Sidebar />
+        {/* Sidebar with mobile responsiveness */}
+        <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-        {/* Main Content Area (Offset by Sidebar width) */}
+        {/* Overlay for mobile sidebar */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Main Content Area */}
         <div className="flex-1 lg:pl-64 flex flex-col min-w-0">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/blogs" element={<Blogs />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/coupons" element={<Coupons />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/" element={<><Header title="Dashboard" setSidebarOpen={setSidebarOpen} /><Dashboard /></>} />
+            <Route path="/products" element={<><Header title="Products" setSidebarOpen={setSidebarOpen} /><Products /></>} />
+            <Route path="/blogs" element={<><Header title="Blogs" setSidebarOpen={setSidebarOpen} /><Blogs /></>} />
+            <Route path="/orders" element={<><Header title="Orders" setSidebarOpen={setSidebarOpen} /><Orders /></>} />
+            <Route path="/customers" element={<><Header title="Customers" setSidebarOpen={setSidebarOpen} /><Customers /></>} />
+            <Route path="/coupons" element={<><Header title="Coupons" setSidebarOpen={setSidebarOpen} /><Coupons /></>} />
+            <Route path="/analytics" element={<><Header title="Analytics" setSidebarOpen={setSidebarOpen} /><Analytics /></>} />
+            <Route path="/settings" element={<><Header title="Settings" setSidebarOpen={setSidebarOpen} /><Settings /></>} />
             <Route path="/login" element={<Navigate to="/" />} />
-            <Route path="*" element={<Dashboard />} />
+            <Route path="*" element={<><Header title="Dashboard" setSidebarOpen={setSidebarOpen} /><Dashboard /></>} />
           </Routes>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Header from '../components/Header';
 import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { publicRequest, userRequest } from '../requestMethods';
 import AddProductModal from '../components/AddProductModal';
@@ -66,9 +65,7 @@ const Products = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Products Management" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Actions Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="flex items-center gap-4 w-full md:w-auto">
@@ -95,13 +92,13 @@ const Products = () => {
         {/* Products Table */}
         <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[600px] md:min-w-0">
               <thead>
                 <tr className="bg-gray-50/50">
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Product</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Category</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden lg:table-cell">Category</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Price</th>
-                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Quantity</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro hidden sm:table-cell">Quantity</th>
                   <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Status</th>
                   <th className="px-6 py-4"></th>
                 </tr>
@@ -111,39 +108,39 @@ const Products = () => {
                   <tr key={product._id} className="hover:bg-gray-50/30 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-14 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-12 md:w-12 md:h-14 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0">
                           <img 
                             src={Array.isArray(product.img) ? product.img[0] : product.img} 
                             alt={product.title} 
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                           />
                         </div>
-                        <span className="text-[14px] font-bold text-black font-gt-walsheim">{product.title}</span>
+                        <span className="text-[13px] md:text-[14px] font-bold text-black font-gt-walsheim truncate max-w-[100px] md:max-w-none">{product.title}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">{product.categories?.join(", ")}</td>
+                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden lg:table-cell">{product.categories?.join(", ")}</td>
                     <td className="px-6 py-4 text-[13px] font-bold text-black font-gt-walsheim">${product.price}</td>
-                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro">
+                    <td className="px-6 py-4 text-[13px] text-black/60 font-sofia-pro hidden sm:table-cell">
                       {product.countInStock || 0}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
+                      <span className={`px-2 md:px-3 py-1 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-widest font-sofia-pro ${
                         product.countInStock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
                       }`}>
                         {product.countInStock > 0 ? "In Stock" : "Out of Stock"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-1 md:gap-2">
                         <button 
                           onClick={() => handleEditClick(product)}
-                          className="p-2 text-black/20 hover:text-black transition-colors"
+                          className="p-1.5 md:p-2 text-black/20 hover:text-black transition-colors"
                         >
                           <FiEdit2 size={16} />
                         </button>
                         <button 
                           onClick={() => handleDeleteClick(product)}
-                          className="p-2 text-black/20 hover:text-red-500 transition-colors"
+                          className="p-1.5 md:p-2 text-black/20 hover:text-red-500 transition-colors"
                         >
                           <FiTrash2 size={16} />
                         </button>

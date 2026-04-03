@@ -2,7 +2,7 @@ import React from 'react';
 
 const StatCard = ({ title, value, icon, trend, trendValue }) => {
   return (
-    <div className="bg-white p-8 border border-gray-100 rounded-sm hover:shadow-xl hover:shadow-black/5 transition-all duration-300 group">
+    <div className="bg-white p-6 md:p-8 border border-gray-100 rounded-sm hover:shadow-xl hover:shadow-black/5 transition-all duration-300 group">
       <div className="flex justify-between items-start mb-6">
         <div className="p-3 bg-gray-50 rounded-lg text-black group-hover:bg-black group-hover:text-white transition-colors duration-300">
           {icon}

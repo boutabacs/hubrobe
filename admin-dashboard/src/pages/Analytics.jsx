@@ -1,13 +1,10 @@
 import React from 'react';
-import Header from '../components/Header';
 import { FiTrendingUp, FiTrendingDown, FiPieChart, FiBarChart2, FiCalendar } from 'react-icons/fi';
 
 const Analytics = () => {
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Analytics & Reports" />
-      
-      <main className="p-8">
+      <main className="p-4 md:p-8">
         {/* Date Range Selector */}
         <div className="flex justify-end mb-8">
           <button className="flex items-center gap-3 bg-white border border-gray-100 px-6 py-3 rounded-sm text-[13px] font-bold uppercase tracking-widest font-sofia-pro hover:bg-gray-50 transition-all">
