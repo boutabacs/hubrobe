@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@font-face {
+  font-family: 'GT Walsheim';
+  src: url('/fonts/GT-Walsheim-Regular-Trial-BF651b7fc71a47d.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT Walsheim';
+  src: url('/fonts/GT-Walsheim-Medium-Trial-BF651b7fc728fb3.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT Walsheim';
+  src: url('/fonts/GT-Walsheim-Bold-Trial-BF651b7fc737c57.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Sofia Pro';
+  src: url('/fonts/Sofia Pro Regular Az.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@theme {
+  --font-gt-walsheim: "GT Walsheim", sans-serif;
+  --font-sofia-pro: "Sofia Pro", sans-serif;
+}
+
+body {
+  font-family: var(--font-gt-walsheim);
+}
