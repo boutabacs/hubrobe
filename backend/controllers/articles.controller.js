@@ -1,4 +1,6 @@
 const Article = require("../models/article.model");
+const Newsletter = require("../models/newsletter.model");
+const sendMail = require("../config/mail");
 
 const getArticles = async (req, res) => {
   const qStatus = req.query.status;
@@ -21,6 +23,29 @@ const createArticle = async (req, res) => {
   const newArticle = new Article(req.body);
   try {
     const savedArticle = await newArticle.save();
+
+    // Send notification to all newsletter subscribers
+    try {
+      const subscribers = await Newsletter.find();
+      const emails = subscribers.map((s) => s.email);
+
+      if (emails.length > 0) {
+        const subject = `New Blog Post: ${savedArticle.title}`;
+        const plainDesc = savedArticle.desc.replace(/<[^>]*>?/gm, '');
+        const content = `
+          <h1>New Blog Post on hubrobe.</h1>
+          <p>${plainDesc.substring(0, 200)}...</p>
+          <a href="https://hubrobe.vercel.app/news/${savedArticle._id}">Read More</a>
+        `;
+        
+        await Promise.all(
+          emails.map((email) => sendMail(email, subject, content))
+        );
+      }
+    } catch (mailErr) {
+      console.error("Blog notification email failed:", mailErr);
+    }
+
     res.status(201).json(savedArticle);
   } catch (err) {
     res.status(500).json(err);

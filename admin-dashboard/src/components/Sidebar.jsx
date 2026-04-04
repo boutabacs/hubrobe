@@ -9,7 +9,8 @@ import {
   FiBox,
   FiFileText,
   FiLogOut,
-  FiTag
+  FiTag,
+  FiMail
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
@@ -22,6 +23,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Orders', icon: <FiShoppingBag />, path: '/orders' },
     { name: 'Coupons', icon: <FiTag />, path: '/coupons' },
     { name: 'Customers', icon: <FiUsers />, path: '/customers' },
+    { name: 'Newsletters', icon: <FiMail />, path: '/newsletters' },
     { name: 'Analytics', icon: <FiBarChart2 />, path: '/analytics' },
     { name: 'Settings', icon: <FiSettings />, path: '/settings' },
   ];
