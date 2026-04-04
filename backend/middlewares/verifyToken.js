@@ -5,7 +5,10 @@ const verifyToken = (req, res, next) => {
   if (authHeader) {
     const token = authHeader.split(" ")[1];
     jwt.verify(token, process.env.JWT_SEC, (err, user) => {
-      if (err) return res.status(403).json("Token is not valid!");
+      if (err) {
+        console.error("JWT Verify Error:", err.message);
+        return res.status(403).json(`Token is not valid: ${err.message}`);
+      }
       req.user = user;
       next();
     });
@@ -20,7 +23,7 @@ const verifyTokenAndAuthorization = (req, res, next) => {
     if (String(req.user.id) === String(paramId) || req.user.isAdmin) {
       next();
     } else {
-      res.status(403).json("You are not allowed to do that!");
+      res.status(403).json("You are not allowed to do that (Auth/Admin check failed)!");
     }
   });
 };
@@ -30,7 +33,7 @@ const verifyTokenAndAdmin = (req, res, next) => {
     if (req.user.isAdmin) {
       next();
     } else {
-      res.status(403).json("You are not allowed to do that!");
+      res.status(403).json(`You are not allowed to do that (isAdmin is ${req.user.isAdmin})!`);
     }
   });
 };

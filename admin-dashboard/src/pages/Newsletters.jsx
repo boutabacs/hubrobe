@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { FiMail, FiSearch, FiSend, FiUsers } from 'react-icons/fi';
+import { FiMail, FiSearch, FiSend, FiUsers, FiX } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
 import Header from '../components/Header';
+import TiptapEditor from '../components/TiptapEditor';
 
 const Newsletters = () => {
   const [subscribers, setSubscribers] = useState([]);
@@ -41,6 +42,10 @@ const Newsletters = () => {
     } finally {
       setIsSending(false);
     }
+  };
+
+  const handleContentChange = (newContent) => {
+    setContent(newContent);
   };
 
   return (
@@ -110,31 +115,35 @@ const Newsletters = () => {
       {/* Send Newsletter Modal */}
       {showSendModal && (
         <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-2xl rounded-sm shadow-2xl animate-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-4xl max-h-[90vh] flex flex-col rounded-sm shadow-2xl animate-in zoom-in duration-200">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-[18px] font-bold uppercase tracking-widest font-sofia-pro">Compose Newsletter</h2>
-              <button onClick={() => setShowSendModal(false)} className="text-black/40 hover:text-black">✕</button>
+              <div className="flex flex-col">
+                <h2 className="text-[18px] font-bold uppercase tracking-widest font-sofia-pro">Compose Newsletter</h2>
+                <p className="text-[10px] text-gray-400 font-sofia-pro uppercase tracking-widest mt-1">
+                  Send a professional email to your subscribers
+                </p>
+              </div>
+              <button onClick={() => setShowSendModal(false)} className="text-black/40 hover:text-black">
+                <FiX size={24} />
+              </button>
             </div>
-            <form onSubmit={handleSendNewsletter} className="p-6 flex flex-col gap-4">
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-widest text-black/40 mb-2 font-sofia-pro">Subject</label>
+            <form onSubmit={handleSendNewsletter} className="p-8 flex-1 overflow-y-auto flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Subject</label>
                 <input 
                   required
                   type="text" 
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Newsletter Subject"
-                  className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-sm text-[14px] font-sofia-pro focus:bg-white focus:border-black outline-none transition-all"
+                  placeholder="e.g. Weekly Trends & New Arrivals"
+                  className="w-full border border-gray-100 px-4 py-3 rounded-sm text-[14px] font-sofia-pro focus:border-black outline-none transition-all"
                 />
               </div>
-              <div>
-                <label className="block text-[12px] font-bold uppercase tracking-widest text-black/40 mb-2 font-sofia-pro">Content (HTML supported)</label>
-                <textarea 
-                  required
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Write your newsletter content here..."
-                  className="w-full bg-gray-50 border border-gray-100 px-4 py-3 rounded-sm text-[14px] font-sofia-pro focus:bg-white focus:border-black outline-none transition-all h-64 resize-none"
+              <div className="flex flex-col gap-2">
+                <label className="text-[11px] font-bold uppercase tracking-widest text-black/40 font-sofia-pro">Newsletter Content</label>
+                <TiptapEditor
+                  content={content}
+                  onChange={handleContentChange}
                 />
               </div>
               <div className="flex justify-end gap-3 mt-4">
