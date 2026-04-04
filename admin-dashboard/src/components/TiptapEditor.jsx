@@ -59,6 +59,9 @@ const TiptapEditor = ({ content, onChange }) => {
     extensions: [
       StarterKit.configure({
         codeBlock: false, // Use lowlight instead
+        history: true,
+        link: false,
+        underline: false,
       }),
       Underline,
       TextStyle,
