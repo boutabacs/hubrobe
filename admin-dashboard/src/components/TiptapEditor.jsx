@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
@@ -55,61 +55,64 @@ const MenuButton = ({ onClick, isActive, disabled, children, title, activeClass 
 const ToolbarDivider = () => <div className="w-px h-6 bg-gray-200 mx-2" />;
 
 const TiptapEditor = ({ content, onChange }) => {
+  const extensions = useMemo(() => [
+    StarterKit.configure({
+      codeBlock: false, // Use lowlight instead
+      history: true,
+      // Disable these if they are included in v3 to avoid duplicates with manual extensions below
+      link: false,
+      underline: false,
+    }),
+    Underline,
+    TextStyle,
+    Color,
+    FontFamily,
+    Subscript,
+    Superscript,
+    Highlight.configure({ multicolor: true }),
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'editor-link',
+      },
+    }),
+    Image.configure({
+      allowBase64: true,
+      HTMLAttributes: {
+        class: 'max-w-full h-auto rounded-lg shadow-md my-6 mx-auto block',
+      },
+    }),
+    Youtube.configure({
+      width: 840,
+      height: 480,
+      HTMLAttributes: {
+        class: 'aspect-video w-full rounded-lg shadow-md my-8',
+      },
+    }),
+    Table.configure({
+      resizable: true,
+    }),
+    TableRow,
+    TableHeader,
+    TableCell,
+    CodeBlockLowlight.configure({
+      lowlight,
+    }),
+    Placeholder.configure({
+      placeholder: 'Write your masterpiece here...',
+    }),
+    CharacterCount,
+    TaskList,
+    TaskItem.configure({
+      nested: true,
+    }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        codeBlock: false, // Use lowlight instead
-        history: true,
-        link: false,
-        underline: false,
-      }),
-      Underline,
-      TextStyle,
-      Color,
-      FontFamily,
-      Subscript,
-      Superscript,
-      Highlight.configure({ multicolor: true }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'editor-link',
-        },
-      }),
-      Image.configure({
-        allowBase64: true,
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg shadow-md my-6 mx-auto block',
-        },
-      }),
-      Youtube.configure({
-        width: 840,
-        height: 480,
-        HTMLAttributes: {
-          class: 'aspect-video w-full rounded-lg shadow-md my-8',
-        },
-      }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      CodeBlockLowlight.configure({
-        lowlight,
-      }),
-      Placeholder.configure({
-        placeholder: 'Write your masterpiece here...',
-      }),
-      CharacterCount,
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
-    ],
+    extensions,
     content: content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
