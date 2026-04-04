@@ -50,15 +50,14 @@ const Newsletters = () => {
 
   return (
     <div className="flex-1 min-h-screen bg-[#F9FAFB]">
-      <Header title="Newsletters" setSidebarOpen={() => {}} />
       <main className="p-4 md:p-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
           <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="bg-white p-4 rounded-sm border border-gray-100 flex items-center gap-3">
+            <div className="bg-white p-4 rounded-sm border border-gray-100 flex items-center gap-3 flex-1 md:flex-initial">
               <FiUsers className="text-black/40" />
               <div>
-                <p className="text-[12px] text-black/40 font-sofia-pro uppercase tracking-widest font-bold">Total Subscribers</p>
-                <p className="text-[20px] font-bold font-sofia-pro">{subscribers.length}</p>
+                <p className="text-[10px] md:text-[12px] text-black/40 font-sofia-pro uppercase tracking-widest font-bold">Total Subscribers</p>
+                <p className="text-[16px] md:text-[20px] font-bold font-sofia-pro">{subscribers.length}</p>
               </div>
             </div>
           </div>
@@ -70,7 +69,30 @@ const Newsletters = () => {
           </button>
         </div>
 
-        <div className="bg-white border border-gray-100 rounded-sm overflow-hidden">
+        {/* Mobile View: Subscriber Cards */}
+        <div className="grid grid-cols-1 gap-4 md:hidden mb-8">
+          {loading ? (
+            <div className="bg-white p-8 text-center border border-gray-100">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mx-auto"></div>
+            </div>
+          ) : subscribers.length === 0 ? (
+            <div className="bg-white p-8 text-center border border-gray-100 text-black/40 font-sofia-pro text-[14px]">No subscribers found.</div>
+          ) : (
+            subscribers.map((sub) => (
+              <div key={sub._id} className="bg-white border border-gray-100 p-4 rounded-sm flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[14px] font-medium text-black font-sofia-pro truncate mr-2">{sub.email}</span>
+                  <span className="text-[11px] text-black/40 font-sofia-pro whitespace-nowrap">
+                    {new Date(sub.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop View: Table */}
+        <div className="hidden md:block bg-white border border-gray-100 rounded-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

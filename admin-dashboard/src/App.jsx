@@ -54,7 +54,7 @@ function App() {
             <Route path="/orders" element={<><Header title="Orders" setSidebarOpen={setSidebarOpen} /><Orders /></>} />
             <Route path="/customers" element={<><Header title="Customers" setSidebarOpen={setSidebarOpen} /><Customers /></>} />
             <Route path="/coupons" element={<><Header title="Coupons" setSidebarOpen={setSidebarOpen} /><Coupons /></>} />
-            <Route path="/newsletters" element={<><Newsletters /></>} />
+            <Route path="/newsletters" element={<><Header title="Newsletters" setSidebarOpen={setSidebarOpen} /><Newsletters /></>} />
             <Route path="/analytics" element={<><Header title="Analytics" setSidebarOpen={setSidebarOpen} /><Analytics /></>} />
             <Route path="/settings" element={<><Header title="Settings" setSidebarOpen={setSidebarOpen} /><Settings /></>} />
             <Route path="/login" element={<Navigate to="/" />} />
