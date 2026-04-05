@@ -21,20 +21,46 @@ function invalidateSmtpIpv4Cache() {
   smtpIpv4Cache = { address: null, expires: 0 };
 }
 
+/** Merge A records from system DNS + public resolvers (Render often returns a single IP that may not route). */
+async function resolveSmtpIpv4Records() {
+  const seen = new Set();
+  const add = (list) => {
+    for (const ip of list || []) seen.add(ip);
+  };
+
+  try {
+    add(await dns.promises.resolve4(SMTP_HOSTNAME));
+  } catch (_) {}
+
+  for (const server of ["8.8.8.8", "1.1.1.1"]) {
+    try {
+      const resolver = new dns.promises.Resolver();
+      resolver.setServers([server]);
+      add(await resolver.resolve4(SMTP_HOSTNAME));
+    } catch (_) {}
+  }
+
+  const list = [...seen];
+  if (!list.length) {
+    throw new Error(`[EmailService] No IPv4 (A) for ${SMTP_HOSTNAME}`);
+  }
+  return list;
+}
+
 /** Gmail A records only — nodemailer can still open IPv6 sockets despite custom lookup. */
 async function getSmtpIpv4Address() {
   const now = Date.now();
   if (smtpIpv4Cache.address && smtpIpv4Cache.expires > now) {
     return smtpIpv4Cache.address;
   }
-  const records = await dns.promises.resolve4(SMTP_HOSTNAME);
-  if (!records?.length) {
-    throw new Error(`[EmailService] No IPv4 (A) for ${SMTP_HOSTNAME}`);
-  }
+  const records = await resolveSmtpIpv4Records();
   const address = records[Math.floor(Math.random() * records.length)];
   smtpIpv4Cache = { address, expires: now + SMTP_IPV4_CACHE_TTL_MS };
   return address;
 }
+
+const SMTP_SUBMISSION = { port: 587, secure: false, requireTLS: true, label: "587" };
+const SMTP_SMTPS = { port: 465, secure: true, requireTLS: false, label: "465" };
 
 function closeTransport(transporter) {
   return new Promise((resolve) => {
@@ -153,55 +179,57 @@ const sendMail = async (to, templateName, templateData) => {
     html: emailLayout(template.html),
   };
 
-  const records = await dns.promises.resolve4(SMTP_HOSTNAME);
-  if (!records?.length) {
-    throw new Error(`[EmailService] No IPv4 (A) for ${SMTP_HOSTNAME}`);
-  }
-
+  const records = await resolveSmtpIpv4Records();
   const order = [...records].sort(() => Math.random() - 0.5);
-  const maxAttempts = Math.min(4, order.length);
+  const ipCap = Math.min(6, order.length);
+  const profiles = [SMTP_SUBMISSION, SMTP_SMTPS];
+  const maxAttempts = ipCap * profiles.length;
   let lastError;
+  let attemptIdx = 0;
 
-  for (let i = 0; i < maxAttempts; i++) {
-    const smtpHost = order[i];
-    const transporter = nodemailer.createTransport({
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 5,
-      host: smtpHost,
-      port: 587,
-      secure: false,
-      requireTLS: true,
-      auth: { user, pass },
-      tls: {
-        rejectUnauthorized: false,
-        servername: SMTP_HOSTNAME,
-      },
-      connectionTimeout: 90000,
-      greetingTimeout: 90000,
-      socketTimeout: 90000,
-    });
+  for (let ipIndex = 0; ipIndex < ipCap; ipIndex++) {
+    const smtpHost = order[ipIndex];
+    for (const p of profiles) {
+      attemptIdx += 1;
+      const transporter = nodemailer.createTransport({
+        pool: true,
+        maxConnections: 1,
+        maxMessages: 5,
+        host: smtpHost,
+        port: p.port,
+        secure: p.secure,
+        requireTLS: p.requireTLS,
+        auth: { user, pass },
+        tls: {
+          rejectUnauthorized: false,
+          servername: SMTP_HOSTNAME,
+        },
+        connectionTimeout: 35000,
+        greetingTimeout: 35000,
+        socketTimeout: 35000,
+      });
 
-    try {
-      await transporter.verify();
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`[EmailService] Success: ${templateName} sent to ${to}. ID: ${info.messageId}`);
-      await closeTransport(transporter);
-      return info;
-    } catch (error) {
-      lastError = error;
-      console.error(
-        `[EmailService] SMTP attempt ${i + 1}/${maxAttempts} (${smtpHost}) ${templateName} → ${to}:`,
-        error.message
-      );
-      await closeTransport(transporter).catch(() => {});
+      try {
+        await transporter.verify();
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`[EmailService] Success: ${templateName} sent to ${to}. ID: ${info.messageId}`);
+        await closeTransport(transporter);
+        return info;
+      } catch (error) {
+        lastError = error;
+        console.error(
+          `[EmailService] SMTP attempt ${attemptIdx}/${maxAttempts} (${smtpHost}:${p.label}) ${templateName} → ${to}:`,
+          error.message
+        );
+        await closeTransport(transporter).catch(() => {});
 
-      if (!isRetryableSmtpError(error)) {
-        console.error(`[EmailService] Failure: ${templateName} to ${to}. Error:`, error.message);
-        throw error;
-      }
-      if (i < maxAttempts - 1) {
-        await new Promise((r) => setTimeout(r, 500));
+        if (!isRetryableSmtpError(error)) {
+          console.error(`[EmailService] Failure: ${templateName} to ${to}. Error:`, error.message);
+          throw error;
+        }
+        if (attemptIdx < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
       }
     }
   }
