@@ -36,27 +36,25 @@ async function getSmtpIpv4Address() {
   return address;
 }
 
-function createSmtpTransport(user, pass, smtpHost) {
-  return nodemailer.createTransport({
-    host: smtpHost,
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    auth: { user, pass },
-    tls: {
-      rejectUnauthorized: false,
-      servername: SMTP_HOSTNAME,
-    },
-    connectionTimeout: 60000,
-    greetingTimeout: 60000,
-    socketTimeout: 60000,
-  });
-}
-
 function closeTransport(transporter) {
   return new Promise((resolve) => {
     transporter.close(() => resolve());
   });
+}
+
+function isRetryableSmtpError(err) {
+  const msg = ((err && err.message) || "").toLowerCase();
+  if (/535|authentication failed|invalid login|bad credentials|eauth/.test(msg)) {
+    return false;
+  }
+  return (
+    /timeout/.test(msg) ||
+    /etimedout/.test(msg) ||
+    /econnreset/.test(msg) ||
+    /econnrefused/.test(msg) ||
+    /enetunreach/.test(msg) ||
+    /enotfound/.test(msg)
+  );
 }
 
 /**
@@ -128,43 +126,88 @@ const templates = {
 };
 
 /**
- * Core Mail Sender
+ * Core Mail Sender (welcome, reset, blog, single newsletter)
+ * Pooled transport + verify + multi-IP retries — same resilience pattern as bulk, without changing bulk code.
  */
 const sendMail = async (to, templateName, templateData) => {
   console.log(`[EmailService] Attempting to send ${templateName} to: ${to}`);
-  
-  try {
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.EMAIL_PASS;
 
-    if (!user || !pass) {
-      console.error("[EmailService] Missing credentials in process.env");
-      throw new Error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
-    }
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
 
-    const smtpHost = await getSmtpIpv4Address();
-    const transporter = createSmtpTransport(user, pass, smtpHost);
+  if (!user || !pass) {
+    console.error("[EmailService] Missing credentials in process.env");
+    throw new Error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
+  }
 
-    const templateFunc = templates[templateName];
-    if (!templateFunc) {
-      throw new Error(`Template ${templateName} not found.`);
-    }
+  const templateFunc = templates[templateName];
+  if (!templateFunc) {
+    throw new Error(`Template ${templateName} not found.`);
+  }
 
-    const template = templateFunc(...templateData);
+  const template = templateFunc(...templateData);
+  const mailOptions = {
+    from: `"hubrobe" <${user}>`,
+    to,
+    subject: template.subject,
+    html: emailLayout(template.html),
+  };
 
-    const info = await transporter.sendMail({
-      from: `"hubrobe" <${user}>`,
-      to,
-      subject: template.subject,
-      html: emailLayout(template.html),
+  const records = await dns.promises.resolve4(SMTP_HOSTNAME);
+  if (!records?.length) {
+    throw new Error(`[EmailService] No IPv4 (A) for ${SMTP_HOSTNAME}`);
+  }
+
+  const order = [...records].sort(() => Math.random() - 0.5);
+  const maxAttempts = Math.min(4, order.length);
+  let lastError;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    const smtpHost = order[i];
+    const transporter = nodemailer.createTransport({
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 5,
+      host: smtpHost,
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: { user, pass },
+      tls: {
+        rejectUnauthorized: false,
+        servername: SMTP_HOSTNAME,
+      },
+      connectionTimeout: 90000,
+      greetingTimeout: 90000,
+      socketTimeout: 90000,
     });
 
-    console.log(`[EmailService] Success: ${templateName} sent to ${to}. ID: ${info.messageId}`);
-    return info;
-  } catch (error) {
-    console.error(`[EmailService] Failure: ${templateName} to ${to}. Error:`, error.message);
-    throw error;
+    try {
+      await transporter.verify();
+      const info = await transporter.sendMail(mailOptions);
+      console.log(`[EmailService] Success: ${templateName} sent to ${to}. ID: ${info.messageId}`);
+      await closeTransport(transporter);
+      return info;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[EmailService] SMTP attempt ${i + 1}/${maxAttempts} (${smtpHost}) ${templateName} → ${to}:`,
+        error.message
+      );
+      await closeTransport(transporter).catch(() => {});
+
+      if (!isRetryableSmtpError(error)) {
+        console.error(`[EmailService] Failure: ${templateName} to ${to}. Error:`, error.message);
+        throw error;
+      }
+      if (i < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
   }
+
+  console.error(`[EmailService] Failure: ${templateName} to ${to}. Error:`, lastError.message);
+  throw lastError;
 };
 
 /**
