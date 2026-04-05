@@ -65,13 +65,21 @@ const resetPassword = async (req, res) => {
       return res.status(400).json("Invalid or expired reset code!");
     }
 
-    user.password = CryptoJS.AES.encrypt(req.body.newPassword, process.env.PASS_SEC).toString();
-    user.resetPasswordCode = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    // Encrypt new password
+    const encryptedPassword = CryptoJS.AES.encrypt(req.body.newPassword, process.env.PASS_SEC).toString();
+    
+    // Update fields using findOneAndUpdate to ensure direct DB overwrite
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      { 
+        password: encryptedPassword,
+        $unset: { resetPasswordCode: "", resetPasswordExpires: "" }
+      }
+    );
 
     res.status(200).json("Password has been reset successfully!");
   } catch (err) {
+    console.error("Reset Password Error:", err);
     res.status(500).json(err);
   }
 };
