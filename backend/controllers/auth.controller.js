@@ -18,18 +18,20 @@ const forgotPassword = async (req, res) => {
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await user.save();
 
-    await sendMail(
+    // Send email in background (don't await)
+    sendMail(
       user.email,
       "Password Reset Code - hubrobe.",
       `<h1>Password Reset</h1>
        <p>You requested a password reset. Your verification code is:</p>
        <h2 style="font-size: 32px; letter-spacing: 5px;">${resetCode}</h2>
        <p>This code will expire in 1 hour.</p>`
-    );
+    ).catch(err => console.error("Background email failed:", err.message));
 
     res.status(200).json("Reset code sent to your email!");
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Forgot Password Error:", err);
+    res.status(500).json(err.message || "An error occurred during the password reset process.");
   }
 };
 
@@ -48,7 +50,7 @@ const verifyResetCode = async (req, res) => {
 
     res.status(200).json("Code verified successfully!");
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json(err.message || "An error occurred.");
   }
 };
 
@@ -80,7 +82,7 @@ const resetPassword = async (req, res) => {
     res.status(200).json("Password has been reset successfully!");
   } catch (err) {
     console.error("Reset Password Error:", err);
-    res.status(500).json(err);
+    res.status(500).json(err.message || "An error occurred.");
   }
 };
 
@@ -96,7 +98,7 @@ const register = async (req, res) => {
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json(err.message || "An error occurred.");
   }
 };
 
@@ -127,7 +129,7 @@ const login = async (req, res) => {
     const { password, ...others } = user._doc;
     res.status(200).json({ ...others, accessToken });
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json(err.message || "An error occurred.");
   }
 };
 

@@ -22,7 +22,18 @@ const ForgotPassword = () => {
         navigate("/reset-password", { state: { email } });
       }, 2000);
     } catch (err) {
-      setError(err.response?.data || "Something went wrong. Please try again.");
+      console.error("Forgot password error:", err);
+      let errorMessage = "Something went wrong. Please check your connection and try again.";
+      
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
