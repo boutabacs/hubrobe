@@ -1,14 +1,13 @@
-const crypto = require("crypto");
 const User = require("../models/user.model");
 const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const { sendResetPasswordEmail, sendWelcomeEmail } = require("../services/email.service");
 
-function clientBaseUrl() {
-  return (process.env.CLIENT_URL || "https://hubrobe.vercel.app").replace(/\/$/, "");
+function normalizeResetCode(code) {
+  return String(code ?? "").replace(/\s/g, "");
 }
 
-// FORGOT PASSWORD (token link in email — same pattern as MERN Stack Boilerplate)
+// FORGOT PASSWORD — 6-digit code + page /reset-password to enter it
 const forgotPassword = async (req, res) => {
   try {
     const email = (req.body.email || "").trim();
@@ -22,52 +21,66 @@ const forgotPassword = async (req, res) => {
       return res.status(404).json("User with this email does not exist!");
     }
 
-    const resetToken = user.getResetPasswordToken();
-    user.resetPasswordCode = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const resetUrl = `${clientBaseUrl()}/reset-password/${resetToken}`;
+    await User.findOneAndUpdate(
+      { email },
+      {
+        resetPasswordCode: resetCode,
+        resetPasswordExpires: Date.now() + 3600000,
+        resetPasswordToken: undefined,
+        resetPasswordExpire: undefined,
+      },
+      { returnDocument: "after", overwrite: false }
+    );
 
-    void sendResetPasswordEmail(email, resetUrl).catch((mailErr) => {
+    void sendResetPasswordEmail(email, resetCode).catch((mailErr) => {
       console.error("Reset password email failed:", mailErr.message);
     });
 
-    res.status(200).json("Reset link sent to your email!");
+    res.status(200).json("Reset code sent to your email!");
   } catch (err) {
     console.error("Forgot Password Error:", err);
     res.status(500).json(err.message || "An error occurred during the password reset process.");
   }
 };
 
-// RESET PASSWORD (body: { resetToken, newPassword })
+// RESET PASSWORD — body: { email, code, newPassword }
 const resetPassword = async (req, res) => {
   try {
-    const { resetToken, newPassword } = req.body;
+    const email = (req.body.email || "").trim();
+    const code = normalizeResetCode(req.body.code);
+    const { newPassword } = req.body;
 
-    if (!resetToken || !newPassword) {
-      return res.status(400).json({ message: "Invalid request." });
+    if (!email || !code || !newPassword) {
+      return res.status(400).json("Email, code, and new password are required.");
     }
 
-    const resetPasswordToken = crypto.createHash("sha256").update(String(resetToken)).digest("hex");
-
     const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
+      email,
+      resetPasswordCode: code,
+      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json("Invalid or expired reset link!");
+      return res.status(400).json("Invalid or expired reset code!");
     }
 
     const encryptedPassword = CryptoJS.AES.encrypt(newPassword, process.env.PASS_SEC).toString();
 
-    user.password = encryptedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    user.resetPasswordCode = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      {
+        $set: { password: encryptedPassword },
+        $unset: {
+          resetPasswordCode: "",
+          resetPasswordExpires: "",
+          resetPasswordToken: "",
+          resetPasswordExpire: "",
+        },
+      },
+      { returnDocument: "after" }
+    );
 
     res.status(200).json("Password has been reset successfully!");
   } catch (err) {

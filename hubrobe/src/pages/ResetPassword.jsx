@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import AccountHero from '../components/AccountHero';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { publicRequest } from '../requestMethods';
 
 const ResetPassword = () => {
-  const { resetToken } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const emailFromState = (location.state?.email || "").trim();
 
+  const [email, setEmail] = useState(emailFromState);
+  const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,18 +20,24 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!resetToken) {
-      return setError("Invalid reset link. Please request a new password reset.");
-    }
     if (newPassword !== confirmPassword) {
       return setError("Passwords do not match!");
+    }
+    const trimmedEmail = email.trim();
+    const codeDigits = code.replace(/\s/g, "");
+    if (!trimmedEmail) {
+      return setError("Please enter your email address.");
+    }
+    if (codeDigits.length !== 6) {
+      return setError("Please enter the 6-digit code from your email.");
     }
 
     setLoading(true);
     setError(null);
     try {
       await publicRequest.post("/auth/reset-password", {
-        resetToken,
+        email: trimmedEmail,
+        code: codeDigits,
         newPassword,
       });
       setMessage("Password reset successfully! Redirecting to login...");
@@ -37,7 +46,7 @@ const ResetPassword = () => {
       }, 3000);
     } catch (err) {
       const d = err.response?.data;
-      let errorMessage = "Failed to reset password. The link may have expired — request a new one.";
+      let errorMessage = "Failed to reset password. Check the code and try again.";
       if (typeof d === "string") errorMessage = d;
       else if (d?.message) errorMessage = d.message;
       setError(errorMessage);
@@ -55,12 +64,46 @@ const ResetPassword = () => {
         </h2>
         <div className="max-w-2xl border border-gray-100 p-8 md:p-12">
           <p className="text-[14px] text-black/60 font-sofia-pro mb-8 leading-relaxed">
-            Choose a new password for your account. This page opened from the link in your email.
+            Enter the 6-digit code we sent to your email, then your new password. If you did not come from &quot;Forgot password&quot;, fill in your email manually.
           </p>
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] font-bold uppercase tracking-widest text-black font-sofia-pro">
+                Email address <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                required
+                readOnly={!!emailFromState}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`w-full border border-gray-100 p-4 outline-none font-sofia-pro text-[14px] ${
+                  emailFromState ? "bg-gray-50 cursor-not-allowed" : "focus:border-black transition-colors"
+                }`}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[13px] font-bold uppercase tracking-widest text-black font-sofia-pro">
+                Verification code <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={6}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="one-time-code"
+                placeholder="6-digit code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                className="w-full border border-gray-100 p-4 outline-none focus:border-black transition-colors font-sofia-pro text-[14px] tracking-[5px] text-center font-bold"
+              />
+            </div>
+
             <div className="flex flex-col gap-2 relative">
               <label className="text-[13px] font-bold uppercase tracking-widest text-black font-sofia-pro">
-                New Password <span className="text-red-500">*</span>
+                New password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -82,7 +125,7 @@ const ResetPassword = () => {
 
             <div className="flex flex-col gap-2">
               <label className="text-[13px] font-bold uppercase tracking-widest text-black font-sofia-pro">
-                Confirm New Password <span className="text-red-500">*</span>
+                Confirm new password <span className="text-red-500">*</span>
               </label>
               <input
                 type={showPassword ? "text" : "password"}
@@ -111,16 +154,16 @@ const ResetPassword = () => {
                 disabled={loading}
                 className="px-10 py-4 bg-black text-white text-[13px] font-bold uppercase tracking-widest font-sofia-pro hover:bg-black/80 transition-all disabled:bg-black/50"
               >
-                {loading ? "Resetting..." : "Save New Password"}
+                {loading ? "Resetting..." : "Save new password"}
               </button>
             </div>
 
             <div className="mt-4 flex flex-col gap-2">
               <Link to="/forgot-password" className="text-[14px] text-black font-bold hover:underline font-sofia-pro">
-                Request a new link
+                Request a new code
               </Link>
               <Link to="/login" className="text-[14px] text-black font-bold hover:underline font-sofia-pro">
-                Back to Login
+                Back to login
               </Link>
             </div>
           </form>
