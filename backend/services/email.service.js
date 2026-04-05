@@ -87,12 +87,14 @@ const sendMail = async (to, templateName, templateData) => {
     }
 
     // Re-create transporter to ensure it uses latest env vars and fresh connection
+    // Force IPv4 and use 'service: gmail' for better compatibility on Render
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      service: 'gmail',
+      family: 4, // Forces IPv4 (essential for Render to avoid ENETUNREACH)
       auth: { user, pass },
-      tls: { rejectUnauthorized: false }
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     const templateFunc = templates[templateName];

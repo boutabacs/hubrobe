@@ -23,7 +23,7 @@ const forgotPassword = async (req, res) => {
         resetPasswordCode: resetCode,
         resetPasswordExpires: Date.now() + 3600000 // 1 hour
       },
-      { new: true, overwrite: false } // Ensures specific fields are updated/overwritten
+      { returnDocument: 'after', overwrite: false } // Ensures specific fields are updated/overwritten
     );
 
     // Send email in background
@@ -81,7 +81,7 @@ const resetPassword = async (req, res) => {
         $set: { password: encryptedPassword },
         $unset: { resetPasswordCode: "", resetPasswordExpires: "" }
       },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     res.status(200).json("Password has been reset successfully!");
