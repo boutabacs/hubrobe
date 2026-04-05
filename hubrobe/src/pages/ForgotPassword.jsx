@@ -16,7 +16,11 @@ const ForgotPassword = () => {
     setError(null);
     setMessage(null);
     try {
-      await publicRequest.post("/auth/forgot-password", { email: email.trim() });
+      await publicRequest.post(
+        "/auth/forgot-password",
+        { email: email.trim() },
+        { timeout: 45000 }
+      );
       setMessage("A reset code has been sent to your email.");
       setTimeout(() => {
         navigate("/reset-password", { state: { email: email.trim() } });
@@ -24,15 +28,18 @@ const ForgotPassword = () => {
     } catch (err) {
       console.error("Forgot password error:", err);
       let errorMessage = "Something went wrong. Please check your connection and try again.";
-      
-      if (err.response?.data) {
-        if (typeof err.response.data === 'string') {
+
+      if (err.code === "ECONNABORTED" || /timeout/i.test(err.message || "")) {
+        errorMessage =
+          "The request timed out. Check your inbox and spam folder—you may still have received the code. If not, try again in a minute.";
+      } else if (err.response?.data) {
+        if (typeof err.response.data === "string") {
           errorMessage = err.response.data;
         } else if (err.response.data.message) {
           errorMessage = err.response.data.message;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);

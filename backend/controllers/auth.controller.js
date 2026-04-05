@@ -28,15 +28,10 @@ const forgotPassword = async (req, res) => {
       { returnDocument: "after", overwrite: false }
     );
 
-    try {
-      await sendResetPasswordEmail(email, resetCode);
-    } catch (mailErr) {
+    // Do not await SMTP: Render HTTP ~30s limit + slow Gmail retries would leave the UI stuck on "Sending...".
+    void sendResetPasswordEmail(email, resetCode).catch((mailErr) => {
       console.error("Reset password email failed:", mailErr.message);
-      return res.status(503).json({
-        message:
-          "We could not send the reset email. Please try again in a few minutes.",
-      });
-    }
+    });
 
     res.status(200).json("Reset code sent to your email!");
   } catch (err) {
