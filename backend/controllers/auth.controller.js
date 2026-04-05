@@ -111,10 +111,27 @@ const register = async (req, res) => {
   }
 };
 
-// LOGIN
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// LOGIN — accepts username OR email (UI says "Username or email")
 const login = async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username });
+    const identifier = (req.body.username || "").trim();
+    const plainPassword = req.body.password;
+
+    if (!identifier || plainPassword === undefined || plainPassword === null) {
+      return res.status(401).json("Wrong credentials!");
+    }
+
+    let user = await User.findOne({ username: identifier });
+    if (!user && identifier.includes("@")) {
+      user = await User.findOne({
+        email: new RegExp(`^${escapeRegex(identifier)}$`, "i"),
+      });
+    }
+
     if (!user) {
       return res.status(401).json("Wrong credentials!");
     }
@@ -122,7 +139,7 @@ const login = async (req, res) => {
     const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.PASS_SEC);
     const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8);
 
-    if (originalPassword !== req.body.password) {
+    if (originalPassword !== plainPassword) {
       return res.status(401).json("Wrong credentials!");
     }
 
