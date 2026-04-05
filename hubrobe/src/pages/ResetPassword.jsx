@@ -15,8 +15,34 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+  const [resendInfo, setResendInfo] = useState(null);
+
+  const handleResendCode = async () => {
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setResendInfo(null);
+      return setError("Enter your email above, then tap « Send code again ».");
+    }
+    setError(null);
+    setResendInfo(null);
+    setResendLoading(true);
+    try {
+      await publicRequest.post("/auth/forgot-password", { email: trimmed }, { timeout: 45000 });
+      setResendInfo("A new code has been sent. Check your inbox (and spam).");
+      setCode("");
+    } catch (err) {
+      const d = err.response?.data;
+      let msg = "Could not send a code. Try again or use « Forgot password » from login.";
+      if (typeof d === "string") msg = d;
+      else if (d?.message) msg = d.message;
+      setError(msg);
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -63,8 +89,11 @@ const ResetPassword = () => {
           Reset Password
         </h2>
         <div className="max-w-2xl border border-gray-100 p-8 md:p-12">
+          <p className="text-[14px] text-black/60 font-sofia-pro mb-6 leading-relaxed">
+            The email with your code is sent when you submit the <strong>Lost password</strong> form (previous step), not when this page opens. Delivery can take a minute.
+          </p>
           <p className="text-[14px] text-black/60 font-sofia-pro mb-8 leading-relaxed">
-            Enter the 6-digit code we sent to your email, then your new password. If you did not come from &quot;Forgot password&quot;, fill in your email manually.
+            Opened this page from the email link without a code? Enter your email and use <strong>Send code again</strong> below.
           </p>
           <form className="flex flex-col gap-8" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-2">
@@ -74,13 +103,21 @@ const ResetPassword = () => {
               <input
                 type="email"
                 required
-                readOnly={!!emailFromState}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full border border-gray-100 p-4 outline-none font-sofia-pro text-[14px] ${
-                  emailFromState ? "bg-gray-50 cursor-not-allowed" : "focus:border-black transition-colors"
-                }`}
+                className="w-full border border-gray-100 p-4 outline-none focus:border-black transition-colors font-sofia-pro text-[14px]"
               />
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={resendLoading}
+                className="self-start text-left text-[13px] font-bold uppercase tracking-widest font-sofia-pro text-black underline underline-offset-4 hover:text-black/70 disabled:opacity-50"
+              >
+                {resendLoading ? "Sending…" : "Send code again"}
+              </button>
+              {resendInfo && (
+                <p className="text-green-600 text-[13px] font-sofia-pro">{resendInfo}</p>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
