@@ -116,24 +116,47 @@ function emailLayout(content) {
 }
 
 /**
- * One transactional message (welcome, reset, single newsletter, blog) — same stack as newsletter bulk.
+ * Resend API (HTTPS) — works reliably from Render; Gmail SMTP often times out.
+ * Env: RESEND_API_KEY=re_...  |  RESEND_FROM="hubrobe <noreply@yourdomain.com>" (or onboarding@resend.dev for tests)
  */
-async function sendSingleEmail(to, subject, htmlInner, logTag) {
-  console.log(`[${logTag}] Attempting to send to: ${to}`);
+async function trySendResend(to, subject, html, logTag) {
+  const key = process.env.RESEND_API_KEY?.trim();
+  if (!key) return null;
 
+  const { Resend } = require("resend");
+  const resend = new Resend(key);
+  const from = (process.env.RESEND_FROM || "hubrobe <onboarding@resend.dev>").trim();
+
+  const { data, error } = await resend.emails.send({
+    from,
+    to: [to],
+    subject,
+    html,
+  });
+
+  if (error) {
+    const msg = error.message || (typeof error === "string" ? error : JSON.stringify(error));
+    throw new Error(msg);
+  }
+
+  console.log(`[${logTag}] Resend OK → ${to} id=${data?.id ?? "?"}`);
+  return { messageId: data?.id };
+}
+
+async function sendViaSmtpHtml(to, subject, html, logTag) {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASS;
 
   if (!user || !pass) {
     console.error(`[${logTag}] Missing EMAIL_USER or EMAIL_PASS`);
-    throw new Error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
+    throw new Error("Missing EMAIL_USER or EMAIL_PASS (or set RESEND_API_KEY).");
   }
 
   const mailOptions = {
     from: `"hubrobe" <${user}>`,
     to,
     subject,
-    html: emailLayout(htmlInner),
+    html,
   };
 
   async function sendOnce(smtpHost) {
@@ -152,25 +175,40 @@ async function sendSingleEmail(to, subject, htmlInner, logTag) {
   try {
     const smtpHost = await getSmtpIpv4Address();
     const info = await sendOnce(smtpHost);
-    console.log(`[${logTag}] Success: sent to ${to}. ID: ${info.messageId}`);
+    console.log(`[${logTag}] SMTP OK → ${to} id=${info.messageId}`);
     return info;
   } catch (error) {
     if (!isRetryableSmtpError(error)) {
-      console.error(`[${logTag}] Failure: ${to}. Error:`, error.message);
+      console.error(`[${logTag}] SMTP failure: ${to}.`, error.message);
       throw error;
     }
-    console.error(`[${logTag}] Retry after failure (${to}):`, error.message);
+    console.error(`[${logTag}] SMTP retry (${to}):`, error.message);
     invalidateSmtpIpv4Cache();
+    const smtpHost = await getSmtpIpv4Address();
+    const info = await sendOnce(smtpHost);
+    console.log(`[${logTag}] SMTP OK → ${to} id=${info.messageId}`);
+    return info;
+  }
+}
+
+/** Full HTML body (e.g. already wrapped with emailLayout). */
+async function sendTransactionalHtml(to, subject, html, logTag) {
+  if (process.env.RESEND_API_KEY?.trim()) {
     try {
-      const smtpHost = await getSmtpIpv4Address();
-      const info = await sendOnce(smtpHost);
-      console.log(`[${logTag}] Success: sent to ${to}. ID: ${info.messageId}`);
-      return info;
-    } catch (err2) {
-      console.error(`[${logTag}] Failure: ${to}. Error:`, err2.message);
-      throw err2;
+      return await trySendResend(to, subject, html, logTag);
+    } catch (e) {
+      console.error(`[${logTag}] Resend failed, falling back to SMTP:`, e.message);
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        throw e;
+      }
     }
   }
+
+  return sendViaSmtpHtml(to, subject, html, logTag);
+}
+
+async function sendSingleEmail(to, subject, htmlInner, logTag) {
+  return sendTransactionalHtml(to, subject, emailLayout(htmlInner), logTag);
 }
 
 module.exports = {
@@ -180,5 +218,6 @@ module.exports = {
   createPooledGmailTransport,
   closeTransport,
   isRetryableSmtpError,
+  sendTransactionalHtml,
   sendSingleEmail,
 };

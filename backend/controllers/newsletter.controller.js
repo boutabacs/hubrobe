@@ -50,10 +50,12 @@ const getSubscribers = async (req, res) => {
 const sendNewsletter = async (req, res) => {
   const { subject, content } = req.body;
   
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    return res.status(500).json({ 
-      error: "Email configuration missing on server (EMAIL_USER or EMAIL_PASS).",
-      details: "Make sure these variables are set in the environment variables (e.g. Render dashboard)."
+  const hasSmtp = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+  const hasResend = Boolean(process.env.RESEND_API_KEY?.trim());
+  if (!hasSmtp && !hasResend) {
+    return res.status(500).json({
+      error: "Email not configured: set RESEND_API_KEY or EMAIL_USER + EMAIL_PASS on the server.",
+      details: "Render: Environment → add RESEND_API_KEY (recommended) or Gmail SMTP variables.",
     });
   }
 

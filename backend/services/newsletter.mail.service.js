@@ -5,6 +5,7 @@ const {
   createPooledGmailTransport,
   closeTransport,
   sendSingleEmail,
+  sendTransactionalHtml,
 } = require("./mail.core");
 
 function buildNewsletterTemplate(subject, content) {
@@ -42,14 +43,33 @@ async function sendNewBlogEmail(email, blogTitle, blogDesc, blogId) {
 }
 
 async function sendNewsletterBulk(recipientEmails, subject, content) {
+  const { subject: mailSubject, html: innerHtml } = buildNewsletterTemplate(subject, content);
+  const html = emailLayout(innerHtml);
+
+  if (process.env.RESEND_API_KEY?.trim()) {
+    const settled = [];
+    for (let i = 0; i < recipientEmails.length; i++) {
+      const to = recipientEmails[i];
+      console.log(`[NewsletterMail] Attempting to send newsletter to: ${to}`);
+      try {
+        await sendTransactionalHtml(to, mailSubject, html, "NewsletterMail");
+        settled.push({ status: "fulfilled", value: {} });
+      } catch (err) {
+        console.error(`[NewsletterMail] Failure: ${to}. Error:`, err.message);
+        settled.push({ status: "rejected", reason: err });
+      }
+      if (i < recipientEmails.length - 1) {
+        await new Promise((r) => setTimeout(r, 450));
+      }
+    }
+    return settled;
+  }
+
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASS;
   if (!user || !pass) {
-    throw new Error("Missing EMAIL_USER or EMAIL_PASS environment variables.");
+    throw new Error("Missing EMAIL_USER or EMAIL_PASS (or set RESEND_API_KEY for newsletter).");
   }
-
-  const { subject: mailSubject, html: innerHtml } = buildNewsletterTemplate(subject, content);
-  const html = emailLayout(innerHtml);
 
   async function sendWithHost(smtpHost) {
     const transporter = createPooledGmailTransport(user, pass, smtpHost, 500);
