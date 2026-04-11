@@ -178,13 +178,21 @@ const Navbar = () => {
               WISHLIST
             </Link>
             {user ? (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
-              >
-                LOGOUT ({user.username})
-              </button>
+              <div className="flex gap-4">
+                <Link
+                  to="/account"
+                  className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
+                >
+                  ACCOUNT
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
+                >
+                  LOGOUT
+                </button>
+              </div>
             ) : (
               <Link
                 to="/login"

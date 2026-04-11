@@ -4,6 +4,7 @@ import Features from "../components/Features";
 import CategoryGrid from "../components/CategoryGrid";
 import ProductSlider from "../components/ProductSlider";
 import Lookbook from "../components/Lookbook";
+import CustomerReviews from "../components/CustomerReviews";
 import BrandSlider from "../components/BrandSlider";
 import NewArrivalsMarquee from "../components/NewArrivalsMarquee";
 import Magazine from "../components/Magazine";
@@ -22,6 +23,7 @@ const Home = () => {
       <CategoryGrid />
       <ProductSlider />
       <Lookbook />
+      <CustomerReviews />
       <BrandSlider />
       <NewArrivalsMarquee />
       <Features />

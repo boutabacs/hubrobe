@@ -15,6 +15,7 @@ import Checkout from './pages/Checkout';
 import OrderReceived from './pages/OrderReceived';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Account from './pages/Account';
 import SingleProduct from './pages/SingleProduct';
 import SingleArticle from './pages/SingleArticle';
 import { Elements } from '@stripe/react-stripe-js';
@@ -48,7 +49,7 @@ function App() {
             <Route path="/order-received" element={<OrderReceived />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/account" element={<Login />} />
+            <Route path="/account" element={<Account />} />
           </Routes>
         </div>
         <Footer />

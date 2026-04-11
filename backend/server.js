@@ -20,6 +20,7 @@ const faqRoute = require("./routes/faq.routes");
 const couponRoute = require("./routes/coupon.routes");
 const newsletterRoute = require("./routes/newsletter.routes");
 const stripeRoute = require("./routes/stripe.routes");
+const reviewRoute = require("./routes/review.routes");
 
 // Database Connection
 connectDB();
@@ -65,6 +66,7 @@ app.use("/api/articles", articlesRoute);
 app.use("/api/faq", faqRoute);
 app.use("/api/coupons", couponRoute);
 app.use("/api/newsletter", newsletterRoute);
+app.use("/api/reviews", reviewRoute);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

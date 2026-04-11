@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { publicRequest, userRequest } from "../requestMethods";
-import { FiShoppingBag } from "react-icons/fi";
+import { FiShoppingBag, FiStar } from "react-icons/fi";
 
 const SingleProduct = () => {
   const { id } = useParams();
@@ -129,8 +129,20 @@ const SingleProduct = () => {
             </h1>
 
             <div className="flex flex-col gap-2 mb-6">
-              <div className="text-[24px] font-bold text-black font-sofia-pro">
-                ${Number(product.price).toFixed(2)}
+              <div className="flex items-center gap-4 mb-1">
+                <div className="text-[24px] font-bold text-black font-sofia-pro">
+                  ${Number(product.price).toFixed(2)}
+                </div>
+                {product.rating > 0 && (
+                  <div className="flex items-center gap-1">
+                    <div className="flex text-black text-sm">
+                      {[...Array(5)].map((_, i) => (
+                        <FiStar key={i} className={i < Math.round(product.rating) ? "fill-black" : "text-black/20"} />
+                      ))}
+                    </div>
+                    <span className="text-[12px] font-bold text-black/40 font-sofia-pro">({product.numReviews})</span>
+                  </div>
+                )}
               </div>
               <div className={`text-[12px] font-bold uppercase tracking-[0.2em] font-sofia-pro ${isOutOfStock ? 'text-red-500' : 'text-green-600'}`}>
                 {isOutOfStock ? "Out of stock" : "In stock"}
@@ -173,6 +185,61 @@ const SingleProduct = () => {
               >
                 Go to cart
               </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-24 pt-24 border-t border-gray-100">
+          <h2 className="text-[28px] md:text-[38px] font-bold text-black mb-12 font-gt-walsheim uppercase">
+            Customer Reviews
+          </h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+            <div className="lg:col-span-2">
+              {!product.reviews || product.reviews.length === 0 ? (
+                <p className="text-black/40 font-sofia-pro italic">No reviews yet for this product.</p>
+              ) : (
+                <div className="flex flex-col gap-10">
+                  {product.reviews.map((review, index) => (
+                    <div key={index} className="pb-10 border-b border-gray-50 last:border-none">
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[14px] font-bold text-black font-sofia-pro uppercase tracking-widest">{review.username}</span>
+                          <span className="text-[11px] text-black/40 font-sofia-pro uppercase tracking-widest">{new Date(review.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex text-black text-xs">
+                          {[...Array(5)].map((_, i) => (
+                            <FiStar key={i} className={i < review.rating ? "fill-black" : "text-black/20"} />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-[14px] text-black/70 font-sofia-pro leading-relaxed italic">
+                        "{review.comment}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar for stats */}
+            <div className="bg-[#fcfcfc] p-10 border border-gray-50 rounded-sm self-start">
+              <h3 className="text-[20px] font-bold text-black mb-6 font-gt-walsheim uppercase tracking-widest">Summary</h3>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="text-[48px] font-bold text-black font-gt-walsheim">{product.rating.toFixed(1)}</span>
+                <div className="flex flex-col gap-1">
+                  <div className="flex text-black text-sm">
+                    {[...Array(5)].map((_, i) => (
+                      <FiStar key={i} className={i < Math.round(product.rating) ? "fill-black" : "text-black/20"} />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-bold text-black/40 uppercase tracking-widest font-sofia-pro">{product.numReviews} Reviews</span>
+                </div>
+              </div>
+              <p className="text-[13px] text-black/50 font-sofia-pro leading-relaxed">
+                Rating based on customer experiences with this specific product.
+              </p>
             </div>
           </div>
         </div>
