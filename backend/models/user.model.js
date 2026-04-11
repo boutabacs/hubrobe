@@ -10,10 +10,6 @@ const UserSchema = new mongoose.Schema(
       default: false,
     },
     img: { type: String },
-    resetPasswordCode: { type: String },
-    resetPasswordExpires: { type: Date },
-    resetPasswordToken: { type: String },
-    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );

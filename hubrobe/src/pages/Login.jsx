@@ -102,11 +102,8 @@ const Login = () => {
               </label>
             </div>
 
-            {/* Lost Password & Register Links */}
+            {/* Register Link */}
             <div className="flex flex-col gap-4 mt-2">
-              <Link to="/forgot-password" size="sm" className="text-[14px] text-blue-500 hover:underline font-sofia-pro text-left">
-                Lost your password?
-              </Link>
               <p className="text-[14px] text-black/60 font-sofia-pro">
                 Don't have an account? <Link to="/register" className="text-black font-bold hover:underline">Register</Link>
               </p>

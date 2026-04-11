@@ -4,6 +4,5 @@
  */
 module.exports = {
   ...require("./welcome.mail.service"),
-  ...require("./reset.mail.service"),
   ...require("./newsletter.mail.service"),
 };

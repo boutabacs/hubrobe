@@ -116,6 +116,40 @@ function emailLayout(content) {
 }
 
 /**
+ * Brevo (Sendinblue) API — Reliable in many regions like Algeria.
+ * Env: BREVO_API_KEY=xkeysib-... | BREVO_SENDER="hubrobe <noreply@yourdomain.com>"
+ */
+async function trySendBrevo(to, subject, html, logTag) {
+  const key = process.env.BREVO_API_KEY?.trim();
+  if (!key) return null;
+
+  try {
+    const SibApiV3Sdk = require("sib-api-v3-sdk");
+    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    const apiKey = defaultClient.authentications["api-key"];
+    apiKey.apiKey = key;
+
+    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+    const senderEmail = process.env.BREVO_SENDER || process.env.EMAIL_USER || "noreply@hubrobe.com";
+    
+    const sendSmtpEmail = {
+      to: [{ email: to }],
+      sender: { email: senderEmail, name: "hubrobe" },
+      subject: subject,
+      htmlContent: html,
+    };
+
+    const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+    console.log(`[${logTag}] Brevo OK → ${to} id=${data?.messageId ?? "?"}`);
+    return { messageId: data?.messageId };
+  } catch (error) {
+    const msg = error.response?.text || error.message || JSON.stringify(error);
+    console.error(`[${logTag}] Brevo error detail:`, msg);
+    throw new Error(`Brevo failed: ${msg}`);
+  }
+}
+
+/**
  * Resend API (HTTPS) — works reliably from Render; Gmail SMTP often times out.
  * Env: RESEND_API_KEY=re_...  |  RESEND_FROM="hubrobe <noreply@yourdomain.com>" (or onboarding@resend.dev for tests)
  */
@@ -148,18 +182,20 @@ async function sendViaSmtpHtml(to, subject, html, logTag) {
   const pass = process.env.EMAIL_PASS;
 
   if (!user || !pass) {
-    console.error(`[${logTag}] Missing EMAIL_USER or EMAIL_PASS`);
-    throw new Error("Missing EMAIL_USER or EMAIL_PASS (or set RESEND_API_KEY).");
+    const errorMsg = `[${logTag}] Missing EMAIL_USER or EMAIL_PASS. No Brevo/Resend API key provided either. Cannot send email.`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   const mailOptions = {
-    from: `"hubrobe" <${user}>`,
+    from: process.env.SMTP_FROM || `"hubrobe" <${user}>`,
     to,
     subject,
     html,
   };
 
   async function sendOnce(smtpHost) {
+    console.log(`[${logTag}] Attempting SMTP via ${smtpHost} (port 587)...`);
     const transporter = createPooledGmailTransport(user, pass, smtpHost, 5);
     try {
       await transporter.verify();
@@ -167,6 +203,7 @@ async function sendViaSmtpHtml(to, subject, html, logTag) {
       await closeTransport(transporter);
       return info;
     } catch (err) {
+      console.error(`[${logTag}] SMTP Attempt failed:`, err.message);
       await closeTransport(transporter).catch(() => {});
       throw err;
     }
@@ -175,24 +212,34 @@ async function sendViaSmtpHtml(to, subject, html, logTag) {
   try {
     const smtpHost = await getSmtpIpv4Address();
     const info = await sendOnce(smtpHost);
-    console.log(`[${logTag}] SMTP OK → ${to} id=${info.messageId}`);
+    console.log(`[${logTag}] SMTP SUCCESS → ${to} id=${info.messageId}`);
     return info;
   } catch (error) {
     if (!isRetryableSmtpError(error)) {
-      console.error(`[${logTag}] SMTP failure: ${to}.`, error.message);
+      console.error(`[${logTag}] SMTP FATAL ERROR for ${to}:`, error.message);
       throw error;
     }
-    console.error(`[${logTag}] SMTP retry (${to}):`, error.message);
+    console.warn(`[${logTag}] SMTP RETRYING for ${to} due to:`, error.message);
     invalidateSmtpIpv4Cache();
     const smtpHost = await getSmtpIpv4Address();
     const info = await sendOnce(smtpHost);
-    console.log(`[${logTag}] SMTP OK → ${to} id=${info.messageId}`);
+    console.log(`[${logTag}] SMTP SUCCESS (on retry) → ${to} id=${info.messageId}`);
     return info;
   }
 }
 
 /** Full HTML body (e.g. already wrapped with emailLayout). */
 async function sendTransactionalHtml(to, subject, html, logTag) {
+  // 1. Try Brevo (Recommended for reliability in regions like Algeria)
+  if (process.env.BREVO_API_KEY?.trim()) {
+    try {
+      return await trySendBrevo(to, subject, html, logTag);
+    } catch (e) {
+      console.error(`[${logTag}] Brevo failed:`, e.message);
+    }
+  }
+
+  // 2. Try Resend
   if (process.env.RESEND_API_KEY?.trim()) {
     try {
       return await trySendResend(to, subject, html, logTag);
@@ -204,6 +251,7 @@ async function sendTransactionalHtml(to, subject, html, logTag) {
     }
   }
 
+  // 3. Fallback to Gmail SMTP
   return sendViaSmtpHtml(to, subject, html, logTag);
 }
 
