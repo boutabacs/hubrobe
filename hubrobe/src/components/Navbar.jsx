@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FiSearch, FiMenu, FiX } from "react-icons/fi";
+import { FiSearch, FiMenu, FiX, FiUser } from "react-icons/fi";
 import { IoIosArrowDown } from "react-icons/io";
 import { publicRequest, userRequest } from "../requestMethods";
 
@@ -131,6 +131,9 @@ const Navbar = () => {
     <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-[100]">
       <div className="max-w-[1920px] mx-auto px-6 md:px-12 py-3 flex justify-between items-center">
         <div className="flex xl:hidden items-center gap-4">
+          <Link to={user ? "/account" : "/login"} className="text-2xl text-black cursor-pointer">
+            <FiUser className="stroke-[2px]" />
+          </Link>
           <Link to="/cart" className="flex items-center gap-2 cursor-pointer group">
             <span className="text-[12px] font-normal leading-6 tracking-[0.05em] text-black uppercase font-sofia-pro">
               CART
@@ -170,6 +173,16 @@ const Navbar = () => {
         </div>
 
         <div className="hidden xl:flex items-center gap-10">
+          <Link 
+            to={user ? "/account" : "/login"} 
+            className="flex items-center gap-2 group cursor-pointer"
+          >
+            <FiUser className="text-2xl text-black/50 group-hover:text-black transition-colors stroke-[2.5px]" />
+            <span className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black group-hover:text-black/50 uppercase font-sofia-pro transition-colors">
+              {user ? "ACCOUNT" : "LOGIN"}
+            </span>
+          </Link>
+
           <div className="flex flex-col items-end gap-0">
             <Link
               to="/wishlist"
@@ -177,29 +190,14 @@ const Navbar = () => {
             >
               WISHLIST
             </Link>
-            {user ? (
-              <div className="flex gap-4">
-                <Link
-                  to="/account"
-                  className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
-                >
-                  ACCOUNT
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
-                >
-                  LOGOUT
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer"
+            {user && (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-[12px] font-normal leading-tight tracking-[0.05em] text-black hover:text-black/50 uppercase font-sofia-pro transition-colors cursor-pointer text-right"
               >
-                MY ACCOUNT
-              </Link>
+                LOGOUT
+              </button>
             )}
           </div>
 
