@@ -230,17 +230,25 @@ async function sendViaSmtpHtml(to, subject, html, logTag) {
 
 /** Full HTML body (e.g. already wrapped with emailLayout). */
 async function sendTransactionalHtml(to, subject, html, logTag) {
+  console.log(`[${logTag}] Starting sendTransactionalHtml to: ${to}`);
+  
   // 1. Try Brevo (Recommended for reliability in regions like Algeria)
-  if (process.env.BREVO_API_KEY?.trim()) {
+  const brevoKey = process.env.BREVO_API_KEY?.trim();
+  if (brevoKey) {
+    console.log(`[${logTag}] Found BREVO_API_KEY. Attempting Brevo...`);
     try {
       return await trySendBrevo(to, subject, html, logTag);
     } catch (e) {
-      console.error(`[${logTag}] Brevo failed:`, e.message);
+      console.error(`[${logTag}] Brevo attempt failed, will try next service. Error:`, e.message);
     }
+  } else {
+    console.warn(`[${logTag}] NO BREVO_API_KEY found in process.env.`);
   }
 
   // 2. Try Resend
-  if (process.env.RESEND_API_KEY?.trim()) {
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  if (resendKey) {
+    console.log(`[${logTag}] Found RESEND_API_KEY. Attempting Resend...`);
     try {
       return await trySendResend(to, subject, html, logTag);
     } catch (e) {
@@ -252,6 +260,7 @@ async function sendTransactionalHtml(to, subject, html, logTag) {
   }
 
   // 3. Fallback to Gmail SMTP
+  console.log(`[${logTag}] Falling back to Gmail SMTP...`);
   return sendViaSmtpHtml(to, subject, html, logTag);
 }
 
