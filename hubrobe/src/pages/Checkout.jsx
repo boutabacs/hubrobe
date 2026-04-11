@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import CheckoutHero from '../components/CheckoutHero';
-import { FiTag, FiChevronRight } from 'react-icons/fi';
+import { FiTag, FiChevronRight, FiCreditCard } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicRequest, userRequest } from '../requestMethods';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const Checkout = () => {
+  const stripe = useStripe();
+  const elements = useElements();
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const navigate = useNavigate();
   const formRef = useRef(null);
@@ -21,7 +24,7 @@ const Checkout = () => {
 
   const user = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "null");
+      return JSON.parse(sessionStorage.getItem("user") || "null");
     } catch {
       return null;
     }
@@ -148,11 +151,61 @@ const Checkout = () => {
         couponCode: appliedCoupon?.code,
         discountAmount: discountAmount,
         address,
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentMethod === "cod" ? "pending" : "waiting",
         status: "pending",
       };
 
       const orderRes = await userRequest.post("/orders", payload);
       const savedOrder = orderRes.data;
+
+      if (paymentMethod === "card") {
+        if (!stripe || !elements) {
+          throw new Error("Stripe has not loaded properly.");
+        }
+
+        const { data: { clientSecret } } = await userRequest.post("/stripe/create-payment-intent", {
+          amount: finalTotal,
+          orderId: savedOrder._id,
+        });
+
+        const cardElement = elements.getElement(CardElement);
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: `${address.firstName} ${address.lastName}`,
+              email: address.email,
+              phone: address.phone,
+              address: {
+                line1: address.streetAddress,
+                city: address.city,
+                state: address.state,
+                postal_code: address.zipCode,
+                country: address.country === "United States (US)" ? "US" : (address.country === "France" ? "FR" : "GB"),
+              },
+            },
+          },
+        });
+
+        if (error) {
+          // Update order status to failed if payment fails
+          await userRequest.put(`/orders/${savedOrder._id}`, {
+            paymentStatus: "failed",
+            status: "cancelled",
+          });
+          throw new Error(error.message);
+        }
+
+        if (paymentIntent.status === "succeeded") {
+          // Update order status to paid (though webhook will also do this)
+          await userRequest.put(`/orders/${savedOrder._id}`, {
+            paymentStatus: "paid",
+            paymentIntentId: paymentIntent.id,
+            status: "processing",
+          });
+        }
+      }
 
       // Best-effort: clear the cart after ordering
       try {
@@ -348,21 +401,67 @@ const Checkout = () => {
             <div className="flex flex-col gap-6 mb-10">
               <h3 className="text-[18px] md:text-[20px] font-bold text-black font-gt-walsheim">Payment</h3>
               
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-6">
+                {/* COD Option */}
                 <label className="flex flex-col gap-4 cursor-pointer">
                   <div className="flex items-center gap-3">
                     <input 
                       type="radio" 
                       name="payment" 
                       checked={paymentMethod === 'cod'} 
-                      readOnly
+                      onChange={() => setPaymentMethod('cod')}
                       className="accent-black w-4 h-4"
                     />
                     <span className="text-[14px] md:text-[15px] font-bold text-black font-sofia-pro">Cash on delivery</span>
                   </div>
-                  <div className="bg-gray-50 p-4 text-[13px] text-black/60 font-sofia-pro leading-relaxed">
-                    Pay with cash upon delivery.
+                  {paymentMethod === 'cod' && (
+                    <div className="bg-gray-50 p-4 text-[13px] text-black/60 font-sofia-pro leading-relaxed border border-gray-100">
+                      Pay with cash upon delivery.
+                    </div>
+                  )}
+                </label>
+
+                {/* Card Option */}
+                <label className="flex flex-col gap-4 cursor-pointer">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="radio" 
+                      name="payment" 
+                      checked={paymentMethod === 'card'} 
+                      onChange={() => setPaymentMethod('card')}
+                      className="accent-black w-4 h-4"
+                    />
+                    <div className="flex items-center gap-2">
+                      <FiCreditCard className="text-black/40" />
+                      <span className="text-[14px] md:text-[15px] font-bold text-black font-sofia-pro">Credit Card (Stripe)</span>
+                    </div>
                   </div>
+                  {paymentMethod === 'card' && (
+                    <div className="bg-gray-50 p-6 flex flex-col gap-4 border border-gray-100">
+                      <p className="text-[13px] text-black/60 font-sofia-pro leading-relaxed">
+                        Pay securely using your credit or debit card via Stripe.
+                      </p>
+                      <div className="bg-white p-4 border border-gray-200 rounded-sm">
+                        <CardElement 
+                          options={{
+                            style: {
+                              base: {
+                                fontSize: '14px',
+                                color: '#000',
+                                '::placeholder': {
+                                  color: '#aab7c4',
+                                },
+                                fontFamily: 'Sofia Pro, sans-serif',
+                              },
+                              invalid: {
+                                color: '#9e2146',
+                              },
+                            },
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </label>
               </div>
             </div>

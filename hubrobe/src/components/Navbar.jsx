@@ -6,7 +6,7 @@ import { publicRequest, userRequest } from "../requestMethods";
 
 const parseUser = () => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "null");
+    return JSON.parse(sessionStorage.getItem("user") || "null");
   } catch {
     return null;
   }
@@ -98,7 +98,7 @@ const Navbar = () => {
   );
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
     window.location.reload();
   };
 

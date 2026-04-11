@@ -8,7 +8,7 @@ const ProductCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     const checkWishlist = async () => {
@@ -71,7 +71,8 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const handleAddToWishlist = async () => {
+  const handleAddToWishlist = async (e) => {
+    e.preventDefault();
     if (!user) {
       alert("Please login to add products to wishlist!");
       return;

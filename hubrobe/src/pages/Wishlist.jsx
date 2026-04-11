@@ -6,10 +6,9 @@ import ProductCard from '../components/ProductCard';
 const Wishlist = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const user = JSON.parse(localStorage.getItem("user"));
-
   useEffect(() => {
-    const getWishlist = async () => {
+    const fetchWishlist = async () => {
+      const user = JSON.parse(sessionStorage.getItem("user") || "null");
       if (!user) {
         setLoading(false);
         return;
@@ -31,7 +30,7 @@ const Wishlist = () => {
         setLoading(false);
       }
     };
-    getWishlist();
+    fetchWishlist();
   }, []);
 
   return (

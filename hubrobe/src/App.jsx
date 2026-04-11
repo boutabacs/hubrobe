@@ -17,6 +17,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import SingleProduct from './pages/SingleProduct';
 import SingleArticle from './pages/SingleArticle';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe("pk_test_51TL6xBGuVuKRLUR1luHNAcOiNbYaAhX67WxQSInSjDjoJkwMDkZYIufvc8nLkB5HGK7itUjhjt9L8BxndxRlHkfX006Ww1hxNJ");
 
 function App() {
   return (
@@ -36,7 +40,11 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/product/:id" element={<SingleProduct />} />
             <Route path="/news/:id" element={<SingleArticle />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/checkout" element={
+              <Elements stripe={stripePromise}>
+                <Checkout />
+              </Elements>
+            } />
             <Route path="/order-received" element={<OrderReceived />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

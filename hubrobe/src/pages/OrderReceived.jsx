@@ -10,111 +10,28 @@ const OrderReceived = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const generateInvoice = () => {
-    if (!order) return;
-
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-
-    // Header - Company Info
-    doc.setFontSize(22);
-    doc.setTextColor(0, 0, 0);
-    doc.text('HUBROBE', 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text('www.hubrobe.com', 14, 26);
-    doc.text('hubrobeshop@gmail.com', 14, 31);
-
-    // Invoice Info (Right aligned)
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text('INVOICE', pageWidth - 14, 20, { align: 'right' });
-    doc.setFontSize(10);
-    doc.text(`Order: ${orderNumber}`, pageWidth - 14, 26, { align: 'right' });
-    doc.text(`Date: ${today}`, pageWidth - 14, 31, { align: 'right' });
-
-    // Line separator
-    doc.setDrawColor(230, 230, 230);
-    doc.line(14, 40, pageWidth - 14, 40);
-
-    // Billing & Shipping info
-    doc.setFontSize(11);
-    doc.setTextColor(0, 0, 0);
-    doc.text('Billing Address', 14, 50);
-    doc.text('Shipping Address', pageWidth / 2 + 7, 50);
-
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    
-    const billingY = 56;
-    if (order.address) {
-      // Billing
-      doc.text(`${order.address.firstName} ${order.address.lastName}`, 14, billingY);
-      doc.text(`${order.address.streetAddress}`, 14, billingY + 5);
-      doc.text(`${order.address.city}, ${order.address.zipCode}`, 14, billingY + 10);
-      doc.text(`${order.address.country}`, 14, billingY + 15);
-      doc.text(`Phone: ${order.address.phone}`, 14, billingY + 20);
-
-      // Shipping
-      doc.text(`${order.address.firstName} ${order.address.lastName}`, pageWidth / 2 + 7, billingY);
-      doc.text(`${order.address.streetAddress}`, pageWidth / 2 + 7, billingY + 5);
-      doc.text(`${order.address.city}, ${order.address.zipCode}`, pageWidth / 2 + 7, billingY + 10);
-      doc.text(`${order.address.country}`, pageWidth / 2 + 7, billingY + 15);
+  const generateInvoice = async () => {
+    if (!order?._id) return;
+    try {
+      const response = await userRequest.get(`/orders/invoice/${order._id}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${order._id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Error downloading invoice:", err);
+      alert("Failed to download invoice. Please try again.");
     }
-
-    // Products Table
-    const tableData = orderItems.map(item => [
-      item.title,
-      item.quantity,
-      `$${item.price.toFixed(2)}`,
-      `$${(item.price * item.quantity).toFixed(2)}`
-    ]);
-
-    autoTable(doc, {
-      startY: 85,
-      head: [['Product', 'Qty', 'Unit Price', 'Total']],
-      body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
-      styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: {
-        1: { halign: 'center' },
-        2: { halign: 'right' },
-        3: { halign: 'right' }
-      }
-    });
-
-    // Totals
-    const finalY = (doc).lastAutoTable.finalY + 10;
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    
-    doc.text('Subtotal:', pageWidth - 60, finalY);
-    doc.text(`$${subtotal.toFixed(2)}`, pageWidth - 14, finalY, { align: 'right' });
-
-    doc.text('Shipping:', pageWidth - 60, finalY + 7);
-    doc.text('Free', pageWidth - 14, finalY + 7, { align: 'right' });
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TOTAL:', pageWidth - 60, finalY + 17);
-    doc.text(`$${subtotal.toFixed(2)}`, pageWidth - 14, finalY + 17, { align: 'right' });
-
-    // Footer
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(150, 150, 150);
-    doc.text('Thank you for shopping with HUBROBE!', pageWidth / 2, pageWidth + 30, { align: 'center' });
-
-    // Save PDF
-    doc.save(`hubrobe-invoice-${orderNumber}.pdf`);
   };
 
   const user = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem("user") || "null");
+      return JSON.parse(sessionStorage.getItem("user") || "null");
     } catch {
       return null;
     }
@@ -128,6 +45,7 @@ const OrderReceived = () => {
     if (paymentMethod === "bank") return "Direct bank transfer";
     if (paymentMethod === "cod") return "Cash on delivery";
     if (paymentMethod === "paypal") return "PayPal";
+    if (paymentMethod === "card") return "Credit Card (Stripe)";
     return paymentMethod;
   }, [paymentMethod]);
 

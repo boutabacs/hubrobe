@@ -19,6 +19,7 @@ const articlesRoute = require("./routes/articles.routes");
 const faqRoute = require("./routes/faq.routes");
 const couponRoute = require("./routes/coupon.routes");
 const newsletterRoute = require("./routes/newsletter.routes");
+const stripeRoute = require("./routes/stripe.routes");
 
 // Database Connection
 connectDB();
@@ -46,6 +47,10 @@ initAdmin();
 
 // Middlewares
 app.use(cors());
+
+// Webhook needs raw body, must be before express.json()
+app.use("/api/stripe", stripeRoute);
+
 app.use(express.json());
 
 // API Endpoints

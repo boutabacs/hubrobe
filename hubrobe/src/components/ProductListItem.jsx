@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 const ProductListItem = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     const checkWishlist = async () => {
@@ -66,6 +66,7 @@ const ProductListItem = ({ product }) => {
   };
 
   const handleAddToWishlist = async () => {
+    const user = JSON.parse(sessionStorage.getItem("user") || "null");
     if (!user) {
       alert("Please login to add products to wishlist!");
       return;

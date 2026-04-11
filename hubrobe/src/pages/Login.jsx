@@ -18,7 +18,7 @@ const Login = () => {
     setError(false);
     try {
       const res = await publicRequest.post("/auth/login", { username, password });
-      localStorage.setItem("user", JSON.stringify(res.data));
+      sessionStorage.setItem("user", JSON.stringify(res.data));
       if (res.data.isAdmin) {
         // Rediriger vers le dashboard admin si c'est un admin
         window.location.href = "http://localhost:5173/"; // Port standard de Vite

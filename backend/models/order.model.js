@@ -18,6 +18,9 @@ const OrderSchema = new mongoose.Schema(
     couponCode: { type: String },
     discountAmount: { type: Number, default: 0 },
     address: { type: Object, required: true },
+    paymentMethod: { type: String, required: true, enum: ["cod", "card"] },
+    paymentStatus: { type: String, default: "pending" },
+    paymentIntentId: { type: String },
     status: { type: String, default: "pending" },
   },
   { timestamps: true }
