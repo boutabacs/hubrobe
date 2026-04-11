@@ -10,23 +10,77 @@ const OrderReceived = () => {
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const generateInvoice = async () => {
-    if (!order?._id) return;
-    try {
-      const response = await userRequest.get(`/orders/invoice/${order._id}`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `invoice-${order._id}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err) {
-      console.error("Error downloading invoice:", err);
-      alert("Failed to download invoice. Please try again.");
+  const generateInvoice = () => {
+    if (!order || orderItems.length === 0) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+
+    // Header - Titre
+    doc.setFontSize(22);
+    doc.setTextColor(0, 0, 0);
+    doc.text('HUBROBE', 14, 20);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Facture de commande', 14, 28);
+
+    // Infos Commande (à droite)
+    doc.setTextColor(0, 0, 0);
+    const orderIdShort = order._id ? String(order._id).slice(-6) : "N/A";
+    doc.text(`Commande : #${orderIdShort}`, pageWidth - 14, 20, { align: 'right' });
+    doc.text(`Date : ${new Date(order.createdAt).toLocaleDateString()}`, pageWidth - 14, 26, { align: 'right' });
+
+    // Adresse de livraison
+    doc.setFontSize(11);
+    doc.text('Adresse de livraison :', 14, 45);
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    if (order.address) {
+      doc.text(`${order.address.firstName} ${order.address.lastName}`, 14, 52);
+      doc.text(`${order.address.streetAddress}`, 14, 57);
+      doc.text(`${order.address.city}, ${order.address.zipCode}`, 14, 62);
+      doc.text(`${order.address.country}`, 14, 67);
     }
+
+    // Tableau des produits
+    const tableData = orderItems.map(item => [
+      item.title,
+      item.quantity,
+      `$${Number(item.price).toFixed(2)}`,
+      `$${(Number(item.price) * item.quantity).toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 80,
+      head: [['Produit', 'Quantité', 'Prix Unitaire', 'Total']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
+      styles: { fontSize: 9, cellPadding: 4 },
+    });
+
+    // Totaux
+    const finalY = (doc).lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    
+    const subtotalVal = order.amount + (order.discountAmount || 0);
+    doc.text(`Sous-total : $${subtotalVal.toFixed(2)}`, pageWidth - 14, finalY, { align: 'right' });
+    doc.text(`Remise : -$${(order.discountAmount || 0).toFixed(2)}`, pageWidth - 14, finalY + 6, { align: 'right' });
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TOTAL : $${Number(order.amount).toFixed(2)}`, pageWidth - 14, finalY + 15, { align: 'right' });
+
+    // Footer
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(150, 150, 150);
+    doc.text('Merci de votre achat chez HUBROBE !', pageWidth / 2, finalY + 30, { align: 'center' });
+
+    // Sauvegarde
+    doc.save(`facture-hubrobe-${orderIdShort}.pdf`);
   };
 
   const user = useMemo(() => {
