@@ -220,6 +220,7 @@ const Checkout = () => {
     } catch (err) {
       console.error("Place order error:", err);
       setError(err);
+      alert("Error: " + (err.response?.data?.message || err.message || "Something went wrong"));
     }
   };
 
