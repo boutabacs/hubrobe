@@ -190,7 +190,6 @@ const Checkout = () => {
         });
 
         if (error) {
-          // Update order status to failed if payment fails
           await userRequest.put(`/orders/${savedOrder._id}`, {
             paymentStatus: "failed",
             status: "cancelled",
@@ -199,7 +198,6 @@ const Checkout = () => {
         }
 
         if (paymentIntent.status === "succeeded") {
-          // Update order status to paid (though webhook will also do this)
           await userRequest.put(`/orders/${savedOrder._id}`, {
             paymentStatus: "paid",
             paymentIntentId: paymentIntent.id,
@@ -208,11 +206,7 @@ const Checkout = () => {
         }
       }
 
-      // Best-effort: clear the cart after ordering
-      try {
-        await userRequest.delete(`/carts/${cart._id}`);
-        sessionStorage.removeItem("appliedCoupon");
-      } catch {}
+      await userRequest.delete(`/carts/${cart._id}`);
 
       localStorage.setItem("lastOrder", JSON.stringify(savedOrder));
       localStorage.setItem("lastPaymentMethod", paymentMethod);
@@ -399,12 +393,10 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* Payment Section */}
             <div className="flex flex-col gap-6 mb-10">
               <h3 className="text-[18px] md:text-[20px] font-bold text-black font-gt-walsheim">Payment</h3>
               
               <div className="flex flex-col gap-6">
-                {/* COD Option */}
                 <label className="flex flex-col gap-4 cursor-pointer">
                   <div className="flex items-center gap-3">
                     <input 
@@ -423,7 +415,6 @@ const Checkout = () => {
                   )}
                 </label>
 
-                {/* Card Option */}
                 <label className="flex flex-col gap-4 cursor-pointer">
                   <div className="flex items-center gap-3">
                     <input 

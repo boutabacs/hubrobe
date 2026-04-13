@@ -1,7 +1,6 @@
 const Product = require("../models/product.model");
 const SiteReview = require("../models/siteReview.model");
 
-// Add product review
 const addProductReview = async (req, res) => {
   const { rating, comment, username } = req.body;
   const productId = req.params.id;
@@ -41,7 +40,6 @@ const addProductReview = async (req, res) => {
   }
 };
 
-// Add site review
 const addSiteReview = async (req, res) => {
   const { rating, comment, username } = req.body;
 
@@ -60,7 +58,6 @@ const addSiteReview = async (req, res) => {
   }
 };
 
-// Get all site reviews (for home page)
 const getSiteReviews = async (req, res) => {
   try {
     const reviews = await SiteReview.find({ isApproved: true }).sort({ createdAt: -1 });

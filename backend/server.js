@@ -7,7 +7,6 @@ const connectDB = require("./config/db");
 const User = require("./models/user.model");
 const CryptoJS = require("crypto-js");
 
-// Routes
 const authRoute = require("./routes/auth.routes");
 const userRoute = require("./routes/user.routes");
 const productRoute = require("./routes/product.routes");
@@ -22,10 +21,8 @@ const newsletterRoute = require("./routes/newsletter.routes");
 const stripeRoute = require("./routes/stripe.routes");
 const reviewRoute = require("./routes/review.routes");
 
-// Database Connection
 connectDB();
 
-// Initialize Admin User
 const initAdmin = async () => {
   try {
     const adminExists = await User.findOne({ username: "hubrobe_admin" });
@@ -46,15 +43,12 @@ const initAdmin = async () => {
 };
 initAdmin();
 
-// Middlewares
 app.use(cors());
 
-// Webhook needs raw body, must be before express.json()
 app.use("/api/stripe", stripeRoute);
 
 app.use(express.json());
 
-// API Endpoints
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);

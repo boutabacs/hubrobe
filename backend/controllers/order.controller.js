@@ -101,27 +101,23 @@ const downloadInvoice = async (req, res) => {
 
     const doc = new jsPDF();
     
-    // Header
     doc.setFontSize(22);
     doc.text("HUBROBE", 105, 20, { align: "center" });
     doc.setFontSize(14);
     doc.text("INVOICE / FACTURE", 105, 30, { align: "center" });
     
-    // Order Info
     doc.setFontSize(10);
     doc.text(`Order ID: ${order._id}`, 20, 45);
     doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 20, 52);
     doc.text(`Payment Method: ${order.paymentMethod.toUpperCase()}`, 20, 59);
     doc.text(`Payment Status: ${order.paymentStatus.toUpperCase()}`, 20, 66);
 
-    // Shipping Address
     doc.text("Shipping Address:", 140, 45);
     doc.text(`${order.address.firstName} ${order.address.lastName}`, 140, 52);
     doc.text(`${order.address.streetAddress}`, 140, 59);
     doc.text(`${order.address.city}, ${order.address.state} ${order.address.zipCode}`, 140, 66);
     doc.text(`${order.address.country}`, 140, 73);
 
-    // Products Table
     const tableData = await Promise.all(order.products.map(async (p) => {
       const product = await Product.findById(p.productId);
       return [
@@ -140,13 +136,11 @@ const downloadInvoice = async (req, res) => {
 
     const finalY = doc.lastAutoTable.finalY || 150;
     
-    // Totals
     doc.text(`Subtotal: $${order.amount + order.discountAmount}`, 140, finalY + 10);
     doc.text(`Discount: -$${order.discountAmount}`, 140, finalY + 17);
     doc.setFontSize(12);
     doc.text(`Total Amount: $${order.amount}`, 140, finalY + 27);
 
-    // Footer
     doc.setFontSize(10);
     doc.text("Thank you for your purchase!", 105, finalY + 50, { align: "center" });
 
