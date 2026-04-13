@@ -23,11 +23,8 @@ const Home = () => {
       <CategoryGrid />
       <ProductSlider />
       <Lookbook />
-      <CustomerReviews />
-      <BrandSlider />
-      <NewArrivalsMarquee />
-      <Features />
       <Magazine />
+      <CustomerReviews />
       <Newsletter />
     </main>
   );
