@@ -3,6 +3,7 @@ import { FiHeart, FiShoppingBag, FiSearch } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import { userRequest } from '../requestMethods';
 import { Link } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 const ProductListItem = ({ product }) => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const ProductListItem = ({ product }) => {
 
   const handleAddToCart = async () => {
     if (!user) {
-      alert("Please login to add products to cart!");
+      toast.error("Veuillez vous connecter !");
       return;
     }
     setLoading(true);
@@ -56,10 +57,10 @@ const ProductListItem = ({ product }) => {
         });
       }
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-      alert("Product added to cart!");
+      toast.success("Produit ajouté au panier !");
     } catch (err) {
       console.error("Cart error:", err);
-      alert("Failed to add to cart.");
+      toast.error("Erreur lors de l'ajout au panier.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +69,7 @@ const ProductListItem = ({ product }) => {
   const handleAddToWishlist = async () => {
     const user = JSON.parse(sessionStorage.getItem("user") || "null");
     if (!user) {
-      alert("Please login to add products to wishlist!");
+      toast.error("Veuillez vous connecter !");
       return;
     }
     try {
@@ -84,15 +85,16 @@ const ProductListItem = ({ product }) => {
         newProducts.push({ productId: product._id });
         await userRequest.post("/wishlist", { products: newProducts });
         setIsInWishlist(true);
-        alert("Product added to wishlist!");
+        toast.success("Produit ajouté aux favoris !");
       } else {
         newProducts = newProducts.filter((p) => p.productId !== product._id);
         await userRequest.post("/wishlist", { products: newProducts });
         setIsInWishlist(false);
-        alert("Product removed from wishlist!");
+        toast.success("Produit retiré des favoris.");
       }
     } catch (err) {
       console.error("Wishlist error:", err);
+      toast.error("Erreur lors de la mise à jour des favoris.");
     }
   };
 

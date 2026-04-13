@@ -4,6 +4,7 @@ import CartItem from '../components/CartItem';
 import { publicRequest, userRequest } from '../requestMethods';
 import { FiArrowRight, FiTruck } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
@@ -73,11 +74,9 @@ const Cart = () => {
       setAppliedCoupon(res.data);
       sessionStorage.setItem("appliedCoupon", JSON.stringify(res.data));
       setCouponCode("");
-      alert("Coupon applied successfully!");
+      toast.success("Coupon appliqué !");
     } catch (err) {
-      setCouponError("Invalid or expired coupon code.");
-      setAppliedCoupon(null);
-      sessionStorage.removeItem("appliedCoupon");
+      toast.error(err.response?.data?.message || "Coupon invalide.");
     }
   };
 
@@ -101,18 +100,22 @@ const Cart = () => {
       window.dispatchEvent(new CustomEvent("cartUpdated"));
     } catch (err) {
       console.error("Update cart error:", err);
+      toast.error("Erreur lors de la mise à jour.");
     }
   };
 
   const handleRemoveItem = async (productId) => {
+    if (!cart?._id) return;
     try {
       const updatedProducts = cart.products.filter(p => p.productId !== productId);
       await userRequest.put(`/carts/${cart._id}`, { products: updatedProducts });
       setProducts(prev => prev.filter(p => p._id !== productId));
       setCart(prev => ({ ...prev, products: updatedProducts }));
       window.dispatchEvent(new CustomEvent("cartUpdated"));
+      toast.success("Produit retiré.");
     } catch (err) {
       console.error("Remove item error:", err);
+      toast.error("Erreur lors de la suppression.");
     }
   };
 

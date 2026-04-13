@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { publicRequest, userRequest } from "../requestMethods";
 import { FiShoppingBag, FiStar } from "react-icons/fi";
+import toast from 'react-hot-toast';
 
 const SingleProduct = () => {
   const { id } = useParams();
@@ -35,7 +36,7 @@ const SingleProduct = () => {
 
   const handleAddToCart = async () => {
     if (!user) {
-      alert("Please login to add products to cart!");
+      toast.error("Veuillez vous connecter pour ajouter des produits au panier !");
       return;
     }
 
@@ -63,10 +64,10 @@ const SingleProduct = () => {
       }
 
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-      alert("Product added to cart!");
+      toast.success("Produit ajouté au panier !");
     } catch (err) {
       console.error("Add to cart error:", err);
-      alert("Failed to add to cart.");
+      toast.error("Erreur lors de l'ajout au panier.");
     }
   };
 

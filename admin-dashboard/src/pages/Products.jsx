@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiX, FiUpload, FiCheck } from 'react-icons/fi';
 import { publicRequest, userRequest } from '../requestMethods';
 import AddProductModal from '../components/AddProductModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import toast from 'react-hot-toast';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -55,9 +56,9 @@ const Products = () => {
       setProducts((prev) => prev.filter((item) => item._id !== selectedProduct._id));
       setIsDeleteModalOpen(false);
       setSelectedProduct(null);
+      toast.success("Produit supprimé !");
     } catch (err) {
-      console.error("Failed to delete product:", err);
-      alert("Failed to delete product. Only admins can do this.");
+      toast.error("Échec de la suppression");
     } finally {
       setActionLoading(false);
     }

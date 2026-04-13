@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiEdit2, FiTrash2, FiX, FiUpload, FiCalendar, FiUser } from 'react-icons/fi';
 import { publicRequest, userRequest } from '../requestMethods';
 import AddBlogModal from '../components/AddBlogModal';
 import DeleteConfirmModal from '../components/DeleteConfirmModal';
+import toast from 'react-hot-toast';
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([]);
@@ -55,9 +56,10 @@ const Blogs = () => {
       setBlogs((prev) => prev.filter((item) => item._id !== selectedBlog._id));
       setIsDeleteModalOpen(false);
       setSelectedBlog(null);
+      toast.success("Article supprimé !");
     } catch (err) {
       console.error("Failed to delete blog:", err);
-      alert("Failed to delete blog. Only admins can do this.");
+      toast.error("Échec de la suppression");
     } finally {
       setActionLoading(false);
     }

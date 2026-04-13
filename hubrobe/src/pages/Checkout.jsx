@@ -4,6 +4,7 @@ import { FiTag, FiChevronRight, FiCreditCard } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicRequest, userRequest } from '../requestMethods';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import toast from 'react-hot-toast';
 
 const Checkout = () => {
   const stripe = useStripe();
@@ -108,7 +109,7 @@ const Checkout = () => {
       sessionStorage.setItem("appliedCoupon", JSON.stringify(res.data));
       setCouponCode("");
       setShowCouponInput(false);
-      alert("Coupon applied successfully!");
+      toast.success("Coupon applied successfully!");
     } catch (err) {
       const errorMsg = err.response?.data || "Invalid or expired coupon code.";
       setCouponError(errorMsg);
@@ -220,7 +221,7 @@ const Checkout = () => {
     } catch (err) {
       console.error("Place order error:", err);
       setError(err);
-      alert("Error: " + (err.response?.data?.message || err.message || "Something went wrong"));
+      toast.error(err.response?.data?.message || err.message || "Something went wrong");
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { FiSearch, FiFilter, FiEye, FiDownload } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiEye, FiDownload, FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
+import toast from 'react-hot-toast';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -14,9 +15,10 @@ const Orders = () => {
           order._id === orderId ? { ...order, status: newStatus } : order
         )
       );
+      toast.success("Statut mis à jour !");
     } catch (err) {
       console.log("Error updating order status:", err);
-      alert("Failed to update order status");
+      toast.error("Échec de la mise à jour");
     }
   };
 

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import AccountHero from '../components/AccountHero';
 import { userRequest, publicRequest } from '../requestMethods';
 import { FiPackage, FiTruck, FiCheckCircle, FiXCircle, FiStar, FiChevronDown, FiChevronUp, FiMessageSquare } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const Account = () => {
   const [orders, setOrders] = useState([]);
@@ -44,10 +45,10 @@ const Account = () => {
         comment: reviewData.comment,
         username: user.username,
       });
-      alert("Merci pour votre avis !");
+      toast.success("Merci pour votre avis !");
       setReviewData({ rating: 5, comment: '', productId: '' });
     } catch (err) {
-      alert(err.response?.data || "Erreur lors de l'envoi de l'avis");
+      toast.error(err.response?.data || "Erreur lors de l'envoi de l'avis");
     } finally {
       setSubmitting(false);
     }
@@ -63,10 +64,10 @@ const Account = () => {
         comment: siteReview.comment,
         username: user.username,
       });
-      alert("Merci pour votre avis sur notre service !");
+      toast.success("Merci pour votre avis sur notre service !");
       setSiteReview({ rating: 5, comment: '' });
     } catch (err) {
-      alert(err.response?.data || "Erreur lors de l'envoi");
+      toast.error(err.response?.data || "Erreur lors de l'envoi");
     } finally {
       setSubmitting(false);
     }

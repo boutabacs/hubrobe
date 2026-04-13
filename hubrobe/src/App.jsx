@@ -20,6 +20,7 @@ import SingleProduct from './pages/SingleProduct';
 import SingleArticle from './pages/SingleArticle';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { Toaster } from 'react-hot-toast';
 
 const stripePromise = loadStripe("pk_test_51TL6xBGuVuKRLUR1luHNAcOiNbYaAhX67WxQSInSjDjoJkwMDkZYIufvc8nLkB5HGK7itUjhjt9L8BxndxRlHkfX006Ww1hxNJ");
 
@@ -27,6 +28,33 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#000',
+            color: '#fff',
+            borderRadius: '0px',
+            fontSize: '14px',
+            fontFamily: 'Sofia Pro, sans-serif',
+            padding: '16px 24px',
+            maxWidth: '500px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#000',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#000',
+            },
+          },
+        }}
+      />
       <div className="min-h-screen bg-white flex flex-col">
         <TopBar />
         <Navbar />

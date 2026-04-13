@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import ScrollToTop from './components/ScrollToTop';
@@ -33,6 +34,33 @@ function App() {
   return (
     <Router>
       <ScrollToTop />
+      <Toaster 
+        position="bottom-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#000',
+            color: '#fff',
+            borderRadius: '0px',
+            fontSize: '14px',
+            fontFamily: 'Sofia Pro, sans-serif',
+            padding: '16px 24px',
+            maxWidth: '500px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#000',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#000',
+            },
+          },
+        }}
+      />
       <div className="flex min-h-screen bg-[#F9FAFB]">
         {/* Sidebar with mobile responsiveness */}
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />

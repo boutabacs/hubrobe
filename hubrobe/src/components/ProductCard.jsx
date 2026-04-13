@@ -3,6 +3,7 @@ import { FiHeart, FiShoppingBag, FiSearch } from 'react-icons/fi';
 import { FaHeart } from 'react-icons/fa';
 import { userRequest } from '../requestMethods';
 import { Link } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 const ProductCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -25,21 +26,14 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async () => {
     if (!user) {
-      alert("Please login to add products to cart!");
+      toast.error("Veuillez vous connecter !");
       return;
     }
     setLoading(true);
     try {
-      // Récupérer le panier actuel
-      let cartRes;
-      try {
-        cartRes = await userRequest.get(`/carts/find/${user._id}`);
-      } catch (err) {
-        // Panier non existant, on en créera un
-      }
+      const cartRes = await userRequest.get(`/carts/find/${user._id}`).catch(() => null);
 
       if (cartRes?.data) {
-        // Mettre à jour le panier existant
         const existingProductIndex = cartRes.data.products.findIndex(
           (p) => String(p.productId) === String(product._id)
         );
@@ -55,17 +49,15 @@ const ProductCard = ({ product }) => {
           products: newProducts,
         });
       } else {
-        // Créer un nouveau panier
         await userRequest.post("/carts", {
           userId: user._id,
           products: [{ productId: product._id, quantity: 1 }],
         });
       }
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-      alert("Product added to cart!");
+      toast.success("Produit ajouté au panier !");
     } catch (err) {
-      console.error("Cart error:", err);
-      alert("Failed to add to cart.");
+      toast.error("Erreur lors de l'ajout au panier.");
     } finally {
       setLoading(false);
     }
@@ -74,7 +66,7 @@ const ProductCard = ({ product }) => {
   const handleAddToWishlist = async (e) => {
     e.preventDefault();
     if (!user) {
-      alert("Please login to add products to wishlist!");
+      toast.error("Veuillez vous connecter !");
       return;
     }
     try {
@@ -90,15 +82,16 @@ const ProductCard = ({ product }) => {
         newProducts.push({ productId: product._id });
         await userRequest.post("/wishlist", { products: newProducts });
         setIsInWishlist(true);
-        alert("Product added to wishlist!");
+        toast.success("Produit ajouté aux favoris !");
       } else {
         newProducts = newProducts.filter((p) => p.productId !== product._id);
         await userRequest.post("/wishlist", { products: newProducts });
         setIsInWishlist(false);
-        alert("Product removed from wishlist!");
+        toast.success("Produit retiré des favoris.");
       }
     } catch (err) {
       console.error("Wishlist error:", err);
+      toast.error("Erreur lors de la mise à jour des favoris.");
     }
   };
 

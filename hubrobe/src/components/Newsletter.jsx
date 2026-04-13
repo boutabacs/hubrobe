@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { publicRequest } from '../requestMethods';
+import toast from 'react-hot-toast';
 
 const Newsletter = () => {
   const [email, setEmail] = useState("");
@@ -17,8 +18,12 @@ const Newsletter = () => {
     try {
       const res = await publicRequest.post("/newsletter", { email });
       setIsSubscribed(true);
+      toast.success("Inscription réussie !");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      const msg = err.response?.data?.message || "Une erreur est survenue. Veuillez réessayer.";
+      setError(msg);
+      toast.error(msg);
+      setIsFlying(false);
       console.log(err);
     } finally {
       setLoading(false);
@@ -30,7 +35,7 @@ const Newsletter = () => {
       <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
         {/* Title */}
         <h2 className="text-[28px] md:text-[36px] font-sofia-pro font-semibold text-black leading-tight mb-16 max-w-lg">
-          {isSubscribed ? "Thank you for subscribing!" : "Subscribe and get 20% off your first purchase."}
+          {isSubscribed ? "Merci de votre inscription !" : "Inscrivez-vous et profitez de -20% sur votre premier achat."}
         </h2>
 
         {/* Success Message or Form */}
@@ -38,13 +43,13 @@ const Newsletter = () => {
           {isSubscribed ? (
             <div className="animate-in fade-in zoom-in duration-500">
               <p className="text-[18px] font-sofia-pro text-black/70 mb-4">
-                Your 20% discount code is:
+                Votre code de réduction de 20% est :
               </p>
               <div className="bg-black text-white px-8 py-4 inline-block rounded-md shadow-lg transform transition-transform hover:scale-105">
                 <span className="text-[24px] font-bold tracking-[0.2em]">WELCOME20</span>
               </div>
               <p className="mt-6 text-[14px] font-sofia-pro text-black/50">
-                Use this code at checkout. A confirmation email has been sent to <strong>{email}</strong>.
+                Utilisez ce code lors du paiement. Un e-mail de confirmation a été envoyé à <strong>{email}</strong>.
               </p>
               <button 
                 onClick={() => {
@@ -54,7 +59,7 @@ const Newsletter = () => {
                 }}
                 className="mt-8 text-[12px] font-bold uppercase tracking-widest text-black/40 hover:text-black transition-colors underline"
               >
-                Back to newsletter
+                Retour à la newsletter
               </button>
             </div>
           ) : (
@@ -75,7 +80,7 @@ const Newsletter = () => {
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email address" 
+                    placeholder="Entrez votre adresse e-mail" 
                     className="flex-1 bg-transparent border-none outline-none text-[14px] font-sofia-pro text-black placeholder:text-black/60 py-1"
                     required
                   />
@@ -84,7 +89,7 @@ const Newsletter = () => {
                     disabled={loading}
                     className={`text-[14px] font-sofia-pro font-semibold text-black uppercase tracking-wider hover:opacity-70 transition-opacity pb-1 ${loading ? 'opacity-30 cursor-not-allowed' : ''}`}
                   >
-                    {loading ? "Submitting..." : "Submit"}
+                    {loading ? "Envoi..." : "S'abonner"}
                   </button>
                 </div>
                 {error && <p className="text-red-500 text-[12px] mt-2 font-sofia-pro">{error}</p>}

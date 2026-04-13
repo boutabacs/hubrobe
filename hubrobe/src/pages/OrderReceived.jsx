@@ -4,6 +4,7 @@ import { publicRequest, userRequest } from '../requestMethods';
 import { FiPhone, FiMail, FiDownload } from 'react-icons/fi';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import toast from 'react-hot-toast';
 
 const OrderReceived = () => {
   const [order, setOrder] = useState(null);
@@ -81,6 +82,7 @@ const OrderReceived = () => {
 
     // Sauvegarde
     doc.save(`facture-hubrobe-${orderIdShort}.pdf`);
+    toast.success("Facture téléchargée !");
   };
 
   const user = useMemo(() => {

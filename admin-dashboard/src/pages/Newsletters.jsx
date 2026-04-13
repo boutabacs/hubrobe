@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { FiMail, FiSearch, FiSend, FiUsers, FiX } from 'react-icons/fi';
+import { FiMail, FiTrash2, FiDownload, FiSearch, FiSend, FiUsers, FiUserCheck, FiX } from 'react-icons/fi';
 import { userRequest } from '../requestMethods';
 import Header from '../components/Header';
 import TiptapEditor from '../components/TiptapEditor';
+import toast from 'react-hot-toast';
 
 const Newsletters = () => {
   const [subscribers, setSubscribers] = useState([]);
@@ -32,15 +33,27 @@ const Newsletters = () => {
     setIsSending(true);
     try {
       await userRequest.post("/newsletter/send", { subject, content });
-      alert("Newsletter sent successfully!");
-      setShowSendModal(false);
+      toast.success("E-mail envoyé avec succès !");
       setSubject("");
       setContent("");
+      setShowSendModal(false);
     } catch (err) {
-      console.error(err);
-      alert("Failed to send newsletter.");
+      console.error("Error sending newsletter:", err);
+      toast.error("Échec de l'envoi");
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Supprimer cet abonné ?")) {
+      try {
+        await userRequest.delete(`/newsletter/${id}`);
+        setSubscribers((prev) => prev.filter((item) => item._id !== id));
+        toast.success("Abonné supprimé");
+      } catch (err) {
+        toast.error("Erreur lors de la suppression");
+      }
     }
   };
 
