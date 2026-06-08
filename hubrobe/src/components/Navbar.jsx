@@ -6,7 +6,9 @@ import { publicRequest, userRequest } from "../requestMethods";
 
 const parseUser = () => {
   try {
-    return JSON.parse(sessionStorage.getItem("user") || "null");
+    return JSON.parse(
+      sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+    );
   } catch {
     return null;
   }
@@ -29,7 +31,9 @@ const Navbar = () => {
       if (searchTerm.trim().length > 1) {
         setIsSearching(true);
         try {
-          const res = await publicRequest.get(`/products?search=${searchTerm.trim()}&limit=5`);
+          const res = await publicRequest.get(
+            `/products?search=${searchTerm.trim()}&limit=5`,
+          );
           setSuggestions(res.data);
         } catch (err) {
           console.error("Error fetching suggestions:", err);
@@ -64,11 +68,13 @@ const Navbar = () => {
       }
       const results = await Promise.allSettled(
         res.data.products.map((p) =>
-          publicRequest.get(`/products/find/${p.productId}`).then((prodRes) => ({
-            ...prodRes.data,
-            quantity: p.quantity,
-          }))
-        )
+          publicRequest
+            .get(`/products/find/${p.productId}`)
+            .then((prodRes) => ({
+              ...prodRes.data,
+              quantity: p.quantity,
+            })),
+        ),
       );
       const items = results
         .filter((r) => r.status === "fulfilled" && r.value?._id)
@@ -91,14 +97,18 @@ const Navbar = () => {
     return () => window.removeEventListener("cartUpdated", onCartUpdated);
   }, [loadCartPreview]);
 
-  const cartLineCount = cartItems.reduce((acc, it) => acc + (it.quantity || 0), 0);
+  const cartLineCount = cartItems.reduce(
+    (acc, it) => acc + (it.quantity || 0),
+    0,
+  );
   const subtotal = cartItems.reduce(
     (acc, it) => acc + (Number(it.price) || 0) * (it.quantity || 0),
-    0
+    0,
   );
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
+    localStorage.removeItem("user");
     window.location.reload();
   };
 
@@ -131,10 +141,16 @@ const Navbar = () => {
     <nav className="w-full bg-white border-b border-gray-100 sticky top-0 z-[100]">
       <div className="max-w-[1920px] mx-auto px-6 md:px-12 py-3 flex justify-between items-center">
         <div className="flex xl:hidden items-center gap-4">
-          <Link to={user ? "/account" : "/login"} className="text-2xl text-black cursor-pointer">
+          <Link
+            to={user ? "/account" : "/login"}
+            className="text-2xl text-black cursor-pointer"
+          >
             <FiUser className="stroke-[2px]" />
           </Link>
-          <Link to="/cart" className="flex items-center gap-2 cursor-pointer group">
+          <Link
+            to="/cart"
+            className="flex items-center gap-2 cursor-pointer group"
+          >
             <span className="text-[12px] font-normal leading-6 tracking-[0.05em] text-black uppercase font-sofia-pro">
               CART
             </span>
@@ -173,8 +189,8 @@ const Navbar = () => {
         </div>
 
         <div className="hidden xl:flex items-center gap-10">
-          <Link 
-            to={user ? "/account" : "/login"} 
+          <Link
+            to={user ? "/account" : "/login"}
             className="flex items-center gap-2 group cursor-pointer"
           >
             <FiUser className="text-2xl text-black/50 group-hover:text-black transition-colors stroke-[2.5px]" />
@@ -203,7 +219,10 @@ const Navbar = () => {
 
           {/* CART + hover dropdown */}
           <div className="relative group">
-            <Link to="/cart" className="flex items-center gap-3 py-2 cursor-pointer">
+            <Link
+              to="/cart"
+              className="flex items-center gap-3 py-2 cursor-pointer"
+            >
               <span className="text-[12px] font-normal leading-6 tracking-[0.05em] text-black group-hover:text-black/50 uppercase font-sofia-pro transition-colors">
                 CART
               </span>
@@ -240,7 +259,9 @@ const Navbar = () => {
                           className="w-16 h-20 bg-gray-50 flex-shrink-0 overflow-hidden rounded-sm block"
                         >
                           <img
-                            src={Array.isArray(item.img) ? item.img[0] : item.img}
+                            src={
+                              Array.isArray(item.img) ? item.img[0] : item.img
+                            }
                             alt={item.title}
                             className="w-full h-full object-cover"
                           />
@@ -290,7 +311,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={() => setIsSearchOpen(true)}
             className="flex items-center gap-3 cursor-pointer group"
           >
@@ -316,7 +337,7 @@ const Navbar = () => {
       {isSearchOpen && (
         <div className="fixed inset-0 bg-white z-[200] flex flex-col animate-in fade-in duration-300">
           <div className="flex justify-end p-8 md:p-12">
-            <button 
+            <button
               onClick={() => setIsSearchOpen(false)}
               className="text-black hover:opacity-50 transition-opacity"
             >
@@ -325,15 +346,15 @@ const Navbar = () => {
           </div>
           <div className="flex-1 flex flex-col items-center justify-center px-6">
             <form onSubmit={handleSearch} className="w-full max-w-4xl relative">
-              <input 
+              <input
                 autoFocus
-                type="text" 
-                placeholder="Search for products..." 
+                type="text"
+                placeholder="Search for products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full bg-transparent border-b-2 border-black/10 py-6 md:py-10 text-[24px] md:text-[48px] font-bold font-sofia-pro outline-none focus:border-black transition-colors placeholder:text-black/10"
               />
-              <button 
+              <button
                 type="submit"
                 className="absolute right-0 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
               >
@@ -362,14 +383,16 @@ const Navbar = () => {
                         className="flex items-center gap-6 p-6 hover:bg-gray-50 transition-all group"
                       >
                         <div className="w-16 h-20 flex-shrink-0 bg-gray-100 overflow-hidden">
-                          <img 
-                            src={item.img?.[0] || "/assets/placeholder.jpg"} 
-                            alt={item.title} 
+                          <img
+                            src={item.img?.[0] || "/assets/placeholder.jpg"}
+                            alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <h4 className="text-[16px] font-bold text-black font-sofia-pro">{item.title}</h4>
+                          <h4 className="text-[16px] font-bold text-black font-sofia-pro">
+                            {item.title}
+                          </h4>
                           <span className="text-[14px] text-black/40 font-sofia-pro uppercase tracking-widest">
                             {item.categories?.[0]}
                           </span>
@@ -425,7 +448,7 @@ const Navbar = () => {
               >
                 Wishlist
               </Link>
-              
+
               {user ? (
                 <div className="flex flex-col gap-6">
                   <Link

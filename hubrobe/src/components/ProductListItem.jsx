@@ -1,21 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { FiHeart, FiShoppingBag, FiSearch } from 'react-icons/fi';
-import { FaHeart } from 'react-icons/fa';
-import { userRequest } from '../requestMethods';
+import React, { useState, useEffect } from "react";
+import { FiHeart, FiShoppingBag, FiSearch } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
+import { userRequest } from "../requestMethods";
 import { Link } from "react-router-dom";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 const ProductListItem = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(
+    sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+  );
 
   useEffect(() => {
     const checkWishlist = async () => {
       if (user) {
         try {
           const res = await userRequest.get(`/wishlist/find/${user._id}`);
-          const exists = res.data?.products?.some((p) => p.productId === product._id);
+          const exists = res.data?.products?.some(
+            (p) => p.productId === product._id,
+          );
           setIsInWishlist(exists);
         } catch (err) {}
       }
@@ -37,7 +41,7 @@ const ProductListItem = ({ product }) => {
 
       if (cartRes?.data) {
         const existingProductIndex = cartRes.data.products.findIndex(
-          (p) => String(p.productId) === String(product._id)
+          (p) => String(p.productId) === String(product._id),
         );
 
         let newProducts = [...cartRes.data.products];
@@ -67,7 +71,9 @@ const ProductListItem = ({ product }) => {
   };
 
   const handleAddToWishlist = async () => {
-    const user = JSON.parse(sessionStorage.getItem("user") || "null");
+    const user = JSON.parse(
+      sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+    );
     if (!user) {
       toast.error("Veuillez vous connecter !");
       return;
@@ -98,8 +104,11 @@ const ProductListItem = ({ product }) => {
     }
   };
 
-  const price = typeof product.price === 'number' ? product.price : product.price?.current;
-  const mainImage = Array.isArray(product.img) ? product.img[0] : (product.img || (product.images && product.images[0]));
+  const price =
+    typeof product.price === "number" ? product.price : product.price?.current;
+  const mainImage = Array.isArray(product.img)
+    ? product.img[0]
+    : product.img || (product.images && product.images[0]);
   const productId = product?._id || product?.id;
   const isOutOfStock = product.countInStock <= 0;
 
@@ -108,10 +117,10 @@ const ProductListItem = ({ product }) => {
       {/* Image Section */}
       <div className="w-full md:w-[300px] aspect-[4/5] bg-gray-100 overflow-hidden relative">
         <Link to={`/product/${productId}`}>
-          <img 
-            src={mainImage} 
-            alt={product.title} 
-            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? 'opacity-50 grayscale-[0.5]' : ''}`}
+          <img
+            src={mainImage}
+            alt={product.title}
+            className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isOutOfStock ? "opacity-50 grayscale-[0.5]" : ""}`}
           />
         </Link>
         {isOutOfStock && (
@@ -121,10 +130,12 @@ const ProductListItem = ({ product }) => {
             </span>
           </div>
         )}
-        <button 
+        <button
           onClick={handleAddToWishlist}
           className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-all z-10 ${
-            isInWishlist ? 'bg-black text-red-500' : 'bg-black text-white hover:bg-white hover:text-black'
+            isInWishlist
+              ? "bg-black text-red-500"
+              : "bg-black text-white hover:bg-white hover:text-black"
           }`}
         >
           {isInWishlist ? <FaHeart size={16} /> : <FiHeart size={16} />}
@@ -143,21 +154,24 @@ const ProductListItem = ({ product }) => {
             <span className="text-[18px] md:text-[20px] font-bold text-black font-sofia-pro">
               ${price?.toFixed(2)}
             </span>
-            <div className={`text-[12px] font-bold uppercase tracking-widest font-sofia-pro ${isOutOfStock ? 'text-red-500' : 'text-black/40'}`}>
-              {isOutOfStock ? 'Out of Stock' : 'In Stock'}
+            <div
+              className={`text-[12px] font-bold uppercase tracking-widest font-sofia-pro ${isOutOfStock ? "text-red-500" : "text-black/40"}`}
+            >
+              {isOutOfStock ? "Out of Stock" : "In Stock"}
             </div>
           </div>
         </div>
-        
+
         <p className="text-[14px] md:text-[16px] text-black/60 font-sofia-pro leading-relaxed max-w-2xl">
-          {product.desc || "Besides, random text risks to be unintendedly humorous or offensive, an unacceptable risk in corporate environments and its many variants have been employed."}
+          {product.desc ||
+            "Besides, random text risks to be unintendedly humorous or offensive, an unacceptable risk in corporate environments and its many variants have been employed."}
         </p>
 
         <div className="flex items-center gap-4 mt-2">
-          <button 
+          <button
             onClick={handleAddToCart}
             disabled={loading || isOutOfStock}
-            className={`bg-black text-white px-8 py-3.5 text-[12px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all font-sofia-pro flex items-center justify-center gap-3 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : 'disabled:bg-black/40'}`}
+            className={`bg-black text-white px-8 py-3.5 text-[12px] font-bold uppercase tracking-widest hover:bg-black/80 transition-all font-sofia-pro flex items-center justify-center gap-3 ${isOutOfStock ? "opacity-50 cursor-not-allowed" : "disabled:bg-black/40"}`}
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -168,7 +182,7 @@ const ProductListItem = ({ product }) => {
               </>
             )}
           </button>
-          <Link 
+          <Link
             to={`/product/${productId}`}
             className="w-12 h-12 border border-gray-100 flex items-center justify-center hover:border-black transition-all"
           >

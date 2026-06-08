@@ -8,7 +8,7 @@ const Wishlist = () => {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchWishlist = async () => {
-      const user = JSON.parse(sessionStorage.getItem("user") || "null");
+      const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "null");
       if (!user) {
         setLoading(false);
         return;

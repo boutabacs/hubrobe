@@ -114,7 +114,11 @@ const OrderReceived = () => {
 
   const user = useMemo(() => {
     try {
-      return JSON.parse(sessionStorage.getItem("user") || "null");
+      return JSON.parse(
+        sessionStorage.getItem("user") ||
+          localStorage.getItem("user") ||
+          "null",
+      );
     } catch {
       return null;
     }
