@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { publicRequest, userRequest } from "../requestMethods";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const Checkout = () => {
   const stripe = useStripe();
@@ -28,6 +29,7 @@ const Checkout = () => {
       return JSON.parse(
         sessionStorage.getItem("user") ||
           localStorage.getItem("user") ||
+          Cookies.get("user") ||
           "null",
       );
     } catch {

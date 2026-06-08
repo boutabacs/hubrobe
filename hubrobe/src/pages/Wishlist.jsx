@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import WishlistHero from '../components/WishlistHero';
-import { publicRequest, userRequest } from '../requestMethods';
-import ProductCard from '../components/ProductCard';
+import React, { useState, useEffect } from "react";
+import WishlistHero from "../components/WishlistHero";
+import { publicRequest, userRequest } from "../requestMethods";
+import ProductCard from "../components/ProductCard";
+import Cookies from "js-cookie";
 
 const Wishlist = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchWishlist = async () => {
-      const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "null");
+      const user = JSON.parse(
+        sessionStorage.getItem("user") ||
+          localStorage.getItem("user") ||
+          Cookies.get("user") ||
+          "null",
+      );
       if (!user) {
         setLoading(false);
         return;
@@ -18,9 +24,11 @@ const Wishlist = () => {
         if (res.data?.products?.length > 0) {
           const productDetails = await Promise.all(
             res.data.products.map(async (p) => {
-              const prodRes = await publicRequest.get(`/products/find/${p.productId}`);
+              const prodRes = await publicRequest.get(
+                `/products/find/${p.productId}`,
+              );
               return prodRes.data;
-            })
+            }),
           );
           setProducts(productDetails);
         }

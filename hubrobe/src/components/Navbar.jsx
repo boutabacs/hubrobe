@@ -3,11 +3,15 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiSearch, FiMenu, FiX, FiUser } from "react-icons/fi";
 import { IoIosArrowDown } from "react-icons/io";
 import { publicRequest, userRequest } from "../requestMethods";
+import Cookies from "js-cookie";
 
 const parseUser = () => {
   try {
     return JSON.parse(
-      sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+      sessionStorage.getItem("user") ||
+        localStorage.getItem("user") ||
+        Cookies.get("user") ||
+        "null",
     );
   } catch {
     return null;
@@ -109,6 +113,7 @@ const Navbar = () => {
   const handleLogout = () => {
     sessionStorage.removeItem("user");
     localStorage.removeItem("user");
+    Cookies.remove("user");
     window.location.reload();
   };
 

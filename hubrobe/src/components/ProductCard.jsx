@@ -1,22 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { FiHeart, FiShoppingBag, FiSearch } from 'react-icons/fi';
-import { FaHeart } from 'react-icons/fa';
-import { userRequest } from '../requestMethods';
+import React, { useState, useEffect } from "react";
+import { FiHeart, FiShoppingBag, FiSearch } from "react-icons/fi";
+import { FaHeart } from "react-icons/fa";
+import { userRequest } from "../requestMethods";
 import { Link } from "react-router-dom";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const ProductCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
-  const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "null");
+  const user = JSON.parse(
+    sessionStorage.getItem("user") ||
+      localStorage.getItem("user") ||
+      Cookies.get("user") ||
+      "null",
+  );
 
   useEffect(() => {
     const checkWishlist = async () => {
       if (user) {
         try {
           const res = await userRequest.get(`/wishlist/find/${user._id}`);
-          const exists = res.data?.products?.some((p) => p.productId === product._id);
+          const exists = res.data?.products?.some(
+            (p) => p.productId === product._id,
+          );
           setIsInWishlist(exists);
         } catch (err) {}
       }
@@ -31,11 +39,13 @@ const ProductCard = ({ product }) => {
     }
     setLoading(true);
     try {
-      const cartRes = await userRequest.get(`/carts/find/${user._id}`).catch(() => null);
+      const cartRes = await userRequest
+        .get(`/carts/find/${user._id}`)
+        .catch(() => null);
 
       if (cartRes?.data) {
         const existingProductIndex = cartRes.data.products.findIndex(
-          (p) => String(p.productId) === String(product._id)
+          (p) => String(p.productId) === String(product._id),
         );
 
         let newProducts = [...cartRes.data.products];
@@ -96,19 +106,25 @@ const ProductCard = ({ product }) => {
   };
 
   // Déterminer les prix à afficher (Compatible Backend & Mock)
-  const price = typeof product.price === 'number' ? product.price : product.price?.current;
+  const price =
+    typeof product.price === "number" ? product.price : product.price?.current;
   const oldPrice = product.price?.old;
   const minPrice = product.price?.min;
   const maxPrice = product.price?.max;
-  
+
   // Image (Compatible Backend & Mock)
-  const mainImage = Array.isArray(product.img) ? product.img[0] : (product.img || (product.images && product.images[0]));
-  const hoverImage = Array.isArray(product.img) && product.img[1] ? product.img[1] : ((product.images && product.images[1]) || mainImage);
+  const mainImage = Array.isArray(product.img)
+    ? product.img[0]
+    : product.img || (product.images && product.images[0]);
+  const hoverImage =
+    Array.isArray(product.img) && product.img[1]
+      ? product.img[1]
+      : (product.images && product.images[1]) || mainImage;
   const productId = product?._id || product?.id;
   const isOutOfStock = product.countInStock <= 0 || product.inStock === false;
 
   return (
-    <div 
+    <div
       className="group flex flex-col w-full cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -135,34 +151,35 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Wishlist Button on Image */}
-        <button 
+        <button
           onClick={handleAddToWishlist}
           className={`absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all z-10 ${
-            isInWishlist ? 'bg-black text-red-500' : 'bg-black text-white hover:bg-white hover:text-black'
+            isInWishlist
+              ? "bg-black text-red-500"
+              : "bg-black text-white hover:bg-white hover:text-black"
           }`}
         >
           {isInWishlist ? <FaHeart size={14} /> : <FiHeart size={14} />}
         </button>
 
         {/* Product Image (click -> single product page) */}
-        <Link
-          to={`/product/${productId}`}
-          className="block w-full h-full"
-        >
+        <Link to={`/product/${productId}`} className="block w-full h-full">
           <img
             src={isHovered ? hoverImage : mainImage}
             alt={product.title}
-            className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-110' : 'scale-100'} ${isOutOfStock ? 'opacity-50 grayscale-[0.5]' : ''}`}
+            className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? "scale-110" : "scale-100"} ${isOutOfStock ? "opacity-50 grayscale-[0.5]" : ""}`}
           />
         </Link>
 
         {/* Hover Actions */}
         <div
           className={`absolute bottom-6 left-0 w-full px-6 flex flex-col gap-2 transition-all duration-300 ${
-            isHovered && !isOutOfStock ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+            isHovered && !isOutOfStock
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-4 pointer-events-none"
           }`}
         >
-          <button 
+          <button
             onClick={handleAddToCart}
             disabled={loading || isOutOfStock}
             className="w-full bg-white text-black py-3.5 flex items-center justify-center gap-2 text-[12px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all shadow-xl"

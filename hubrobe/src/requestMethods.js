@@ -1,4 +1,5 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const BASE_URL = "https://final-project-ang9.onrender.com/api/";
 
@@ -13,7 +14,12 @@ export const userRequest = axios.create({
 
 // Ajouter un intercepteur pour injecter le token dynamiquement
 userRequest.interceptors.request.use((config) => {
-  const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "null");
+  const user = JSON.parse(
+    sessionStorage.getItem("user") ||
+      localStorage.getItem("user") ||
+      Cookies.get("user") ||
+      "null",
+  );
   const TOKEN = user?.accessToken;
   if (TOKEN) {
     config.headers.token = `Bearer ${TOKEN}`;

@@ -4,12 +4,16 @@ import { FaHeart } from "react-icons/fa";
 import { userRequest } from "../requestMethods";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const ProductListItem = ({ product }) => {
   const [loading, setLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const user = JSON.parse(
-    sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+    sessionStorage.getItem("user") ||
+      localStorage.getItem("user") ||
+      Cookies.get("user") ||
+      "null",
   );
 
   useEffect(() => {
@@ -72,7 +76,10 @@ const ProductListItem = ({ product }) => {
 
   const handleAddToWishlist = async () => {
     const user = JSON.parse(
-      sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+      sessionStorage.getItem("user") ||
+        localStorage.getItem("user") ||
+        Cookies.get("user") ||
+        "null",
     );
     if (!user) {
       toast.error("Veuillez vous connecter !");

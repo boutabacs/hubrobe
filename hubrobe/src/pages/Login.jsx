@@ -3,6 +3,7 @@ import AccountHero from "../components/AccountHero";
 import { Link, useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { publicRequest } from "../requestMethods";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -24,11 +25,14 @@ const Login = () => {
       });
 
       if (rememberMe) {
+        // Stocker dans localStorage ET Cookie pour 7 jours
         localStorage.setItem("user", JSON.stringify(res.data));
+        Cookies.set("user", JSON.stringify(res.data), { expires: 7 });
         sessionStorage.removeItem("user");
       } else {
         sessionStorage.setItem("user", JSON.stringify(res.data));
         localStorage.removeItem("user");
+        Cookies.remove("user");
       }
 
       if (res.data.isAdmin) {

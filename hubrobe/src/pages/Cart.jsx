@@ -5,6 +5,7 @@ import { publicRequest, userRequest } from "../requestMethods";
 import { FiArrowRight, FiTruck } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const Cart = () => {
   const [cart, setCart] = useState(null);
@@ -14,7 +15,10 @@ const Cart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
   const user = JSON.parse(
-    sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+    sessionStorage.getItem("user") ||
+      localStorage.getItem("user") ||
+      Cookies.get("user") ||
+      "null",
   );
 
   useEffect(() => {

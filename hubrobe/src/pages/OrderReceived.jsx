@@ -5,6 +5,7 @@ import { FiPhone, FiMail, FiDownload } from "react-icons/fi";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import toast from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const OrderReceived = () => {
   const [order, setOrder] = useState(null);
@@ -117,6 +118,7 @@ const OrderReceived = () => {
       return JSON.parse(
         sessionStorage.getItem("user") ||
           localStorage.getItem("user") ||
+          Cookies.get("user") ||
           "null",
       );
     } catch {
