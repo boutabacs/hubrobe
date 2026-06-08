@@ -4,7 +4,7 @@ const Order = require("../models/order.model");
 
 const getStats = async (req, res) => {
   try {
-    const userCount = await User.countDocuments();
+    const userCount = await User.countDocuments({ isAdmin: false });
     const productCount = await Product.countDocuments();
     const orderCount = await Order.countDocuments();
     
