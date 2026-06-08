@@ -12,7 +12,7 @@ export const userRequest = axios.create({
 });
 
 userRequest.interceptors.request.use((config) => {
-  const TOKEN = localStorage.getItem("adminToken");
+  const TOKEN = sessionStorage.getItem("adminToken");
   if (TOKEN) {
     config.headers.token = `Bearer ${TOKEN}`;
   }

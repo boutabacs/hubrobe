@@ -29,8 +29,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
+    sessionStorage.removeItem("adminToken");
+    sessionStorage.removeItem("adminUser");
     window.location.reload();
   };
 

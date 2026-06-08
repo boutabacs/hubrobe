@@ -19,8 +19,8 @@ const Login = () => {
       const res = await publicRequest.post("/auth/login", { username, password });
       
       if (res.data.isAdmin) {
-        localStorage.setItem("adminToken", res.data.accessToken);
-        localStorage.setItem("adminUser", JSON.stringify(res.data));
+        sessionStorage.setItem("adminToken", res.data.accessToken);
+        sessionStorage.setItem("adminUser", JSON.stringify(res.data));
         navigate("/");
         window.location.reload(); // Pour rafraîchir le token dans requestMethods
       } else {
