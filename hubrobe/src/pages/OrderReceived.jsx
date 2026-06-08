@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import CheckoutHero from '../components/CheckoutHero';
-import { publicRequest, userRequest } from '../requestMethods';
-import { FiPhone, FiMail, FiDownload } from 'react-icons/fi';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import toast from 'react-hot-toast';
+import React, { useEffect, useMemo, useState } from "react";
+import CheckoutHero from "../components/CheckoutHero";
+import { publicRequest, userRequest } from "../requestMethods";
+import { FiPhone, FiMail, FiDownload } from "react-icons/fi";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import toast from "react-hot-toast";
 
 const OrderReceived = () => {
   const [order, setOrder] = useState(null);
@@ -20,21 +20,28 @@ const OrderReceived = () => {
     // Header - Titre
     doc.setFontSize(22);
     doc.setTextColor(0, 0, 0);
-    doc.text('HUBROBE', 14, 20);
-    
+    doc.text("HUBROBE", 14, 20);
+
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
-    doc.text('Facture de commande', 14, 28);
+    doc.text("Facture de commande", 14, 28);
 
     // Infos Commande (à droite)
     doc.setTextColor(0, 0, 0);
     const orderIdShort = order._id ? String(order._id).slice(-6) : "N/A";
-    doc.text(`Commande : #${orderIdShort}`, pageWidth - 14, 20, { align: 'right' });
-    doc.text(`Date : ${new Date(order.createdAt).toLocaleDateString()}`, pageWidth - 14, 26, { align: 'right' });
+    doc.text(`Commande : #${orderIdShort}`, pageWidth - 14, 20, {
+      align: "right",
+    });
+    doc.text(
+      `Date : ${new Date(order.createdAt).toLocaleDateString()}`,
+      pageWidth - 14,
+      26,
+      { align: "right" },
+    );
 
     // Adresse de livraison
     doc.setFontSize(11);
-    doc.text('Adresse de livraison :', 14, 45);
+    doc.text("Adresse de livraison :", 14, 45);
     doc.setFontSize(9);
     doc.setTextColor(80, 80, 80);
     if (order.address) {
@@ -45,40 +52,60 @@ const OrderReceived = () => {
     }
 
     // Tableau des produits
-    const tableData = orderItems.map(item => [
+    const tableData = orderItems.map((item) => [
       item.title,
       item.quantity,
       `$${Number(item.price).toFixed(2)}`,
-      `$${(Number(item.price) * item.quantity).toFixed(2)}`
+      `$${(Number(item.price) * item.quantity).toFixed(2)}`,
     ]);
 
     autoTable(doc, {
       startY: 80,
-      head: [['Produit', 'Quantité', 'Prix Unitaire', 'Total']],
+      head: [["Produit", "Quantité", "Prix Unitaire", "Total"]],
       body: tableData,
-      theme: 'striped',
+      theme: "striped",
       headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
       styles: { fontSize: 9, cellPadding: 4 },
     });
 
     // Totaux
-    const finalY = (doc).lastAutoTable.finalY + 10;
+    const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(10);
     doc.setTextColor(0, 0, 0);
-    
+
     const subtotalVal = order.amount + (order.discountAmount || 0);
-    doc.text(`Sous-total : $${subtotalVal.toFixed(2)}`, pageWidth - 14, finalY, { align: 'right' });
-    doc.text(`Remise : -$${(order.discountAmount || 0).toFixed(2)}`, pageWidth - 14, finalY + 6, { align: 'right' });
-    
+    doc.text(
+      `Sous-total : $${subtotalVal.toFixed(2)}`,
+      pageWidth - 14,
+      finalY,
+      { align: "right" },
+    );
+    doc.text(
+      `Remise : -$${(order.discountAmount || 0).toFixed(2)}`,
+      pageWidth - 14,
+      finalY + 6,
+      { align: "right" },
+    );
+
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL : $${Number(order.amount).toFixed(2)}`, pageWidth - 14, finalY + 15, { align: 'right' });
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      `TOTAL : $${Number(order.amount).toFixed(2)}`,
+      pageWidth - 14,
+      finalY + 15,
+      { align: "right" },
+    );
 
     // Footer
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(150, 150, 150);
-    doc.text('Merci de votre achat chez HUBROBE !', pageWidth / 2, finalY + 30, { align: 'center' });
+    doc.text(
+      "Merci de votre achat chez HUBROBE !",
+      pageWidth / 2,
+      finalY + 30,
+      { align: "center" },
+    );
 
     // Sauvegarde
     doc.save(`facture-hubrobe-${orderIdShort}.pdf`);
@@ -106,7 +133,10 @@ const OrderReceived = () => {
   }, [paymentMethod]);
 
   const subtotal = useMemo(() => {
-    return orderItems.reduce((acc, item) => acc + (Number(item.price) || 0) * (item.quantity || 0), 0);
+    return orderItems.reduce(
+      (acc, item) => acc + (Number(item.price) || 0) * (item.quantity || 0),
+      0,
+    );
   }, [orderItems]);
 
   useEffect(() => {
@@ -143,11 +173,13 @@ const OrderReceived = () => {
       try {
         const results = await Promise.allSettled(
           order.products.map((p) =>
-            publicRequest.get(`/products/find/${p.productId}`).then((prodRes) => ({
-              ...prodRes.data,
-              quantity: p.quantity,
-            }))
-          )
+            publicRequest
+              .get(`/products/find/${p.productId}`)
+              .then((prodRes) => ({
+                ...prodRes.data,
+                quantity: p.quantity,
+              })),
+          ),
         );
         const items = results
           .filter((r) => r.status === "fulfilled" && r.value)
@@ -165,10 +197,10 @@ const OrderReceived = () => {
 
   const today = useMemo(() => {
     const dateValue = order?.createdAt ? new Date(order.createdAt) : new Date();
-    return dateValue.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return dateValue.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   }, [order]);
 
@@ -206,44 +238,70 @@ const OrderReceived = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 w-full mt-10 print-container">
-        
         {/* Checkout Steps */}
         <div className="flex flex-col md:flex-row items-center justify-center gap-10 md:gap-20 mb-20 border-b border-gray-100 pb-12 checkout-steps">
           <div className="flex items-center gap-4 opacity-30">
-            <span className="w-8 h-8 rounded-full border border-black flex items-center justify-center text-[13px] font-bold">1</span>
-            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">Shopping Cart</span>
+            <span className="w-8 h-8 rounded-full border border-black flex items-center justify-center text-[13px] font-bold">
+              1
+            </span>
+            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">
+              Shopping Cart
+            </span>
           </div>
           <div className="flex items-center gap-4 opacity-30">
-            <span className="w-8 h-8 rounded-full border border-black flex items-center justify-center text-[13px] font-bold">2</span>
-            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">Payment</span>
+            <span className="w-8 h-8 rounded-full border border-black flex items-center justify-center text-[13px] font-bold">
+              2
+            </span>
+            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">
+              Payment
+            </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[13px] font-bold">3</span>
-            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">Order Received</span>
+            <span className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[13px] font-bold">
+              3
+            </span>
+            <span className="text-[14px] md:text-[15px] font-bold text-black uppercase tracking-widest font-sofia-pro">
+              Order Received
+            </span>
           </div>
         </div>
 
         <p className="text-[14px] text-black/60 font-sofia-pro max-w-md leading-relaxed mb-10">
-          Your order has been placed successfully. We've sent a confirmation email to your inbox. 
-          If you have any questions, please contact us at <span className="text-black font-bold">hubrobeshop@gmail.com</span>
+          Your order has been placed successfully. We've sent a confirmation
+          email to your inbox. If you have any questions, please contact us at{" "}
+          <span className="text-black font-bold">hubrobeshop@gmail.com</span>
         </p>
 
         {/* Order Info Summary Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
           <div className="flex flex-col gap-2 border-r border-gray-100 last:border-none">
-            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Order Number:</span>
-            <span className="text-[14px] font-bold text-black font-sofia-pro">{loading ? "..." : orderNumber}</span>
+            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">
+              Order Number:
+            </span>
+            <span className="text-[14px] font-bold text-black font-sofia-pro">
+              {loading ? "..." : orderNumber}
+            </span>
           </div>
           <div className="flex flex-col gap-2 border-r border-gray-100 last:border-none">
-            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Date:</span>
-            <span className="text-[14px] font-bold text-black font-sofia-pro">{today}</span>
+            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">
+              Date:
+            </span>
+            <span className="text-[14px] font-bold text-black font-sofia-pro">
+              {today}
+            </span>
           </div>
           <div className="flex flex-col gap-2 border-r border-gray-100 last:border-none">
-            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Total:</span>
-            <span className="text-[14px] font-bold text-black font-sofia-pro">${subtotal.toFixed(2)}</span>
+            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">
+              Total:
+            </span>
+            <span className="text-[14px] font-bold text-black font-sofia-pro">
+              ${subtotal.toFixed(2)}
+            </span>
           </div>
           <div className="flex flex-col gap-2 border-r border-gray-100 last:border-none">
-            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">Payment Method:</span>
+            <span className="text-[11px] uppercase tracking-widest text-black/40 font-bold font-sofia-pro">
+              Payment Method:
+            </span>
             <span className="text-[14px] font-bold text-black font-sofia-pro">
               {paymentLabel}
             </span>
@@ -254,7 +312,7 @@ const OrderReceived = () => {
           <h2 className="text-[32px] md:text-[40px] font-bold text-black font-gt-walsheim">
             Order details
           </h2>
-          <button 
+          <button
             onClick={generateInvoice}
             className="flex items-center gap-3 px-6 py-3 bg-black text-white text-[13px] font-bold uppercase tracking-widest rounded-md hover:bg-black/80 transition-all shadow-lg hover:shadow-black/20 hidden-print"
           >
@@ -265,18 +323,28 @@ const OrderReceived = () => {
         {/* Order Details Table */}
         <div className="w-full mb-20 print-border">
           <div className="grid grid-cols-2 bg-[#f7f7f7] py-4 px-8 mb-4">
-            <span className="text-[12px] font-bold uppercase tracking-widest text-black font-sofia-pro">Product</span>
-            <span className="text-[12px] font-bold uppercase tracking-widest text-black font-sofia-pro text-right">Total</span>
+            <span className="text-[12px] font-bold uppercase tracking-widest text-black font-sofia-pro">
+              Product
+            </span>
+            <span className="text-[12px] font-bold uppercase tracking-widest text-black font-sofia-pro text-right">
+              Total
+            </span>
           </div>
-          
+
           <div className="flex flex-col">
             {loading ? (
               <div className="px-8 py-6 text-black/40">Loading...</div>
             ) : (
               orderItems.map((item) => (
-                <div key={item._id} className="grid grid-cols-2 py-6 px-8 border-b border-gray-50 items-center">
+                <div
+                  key={item._id}
+                  className="grid grid-cols-2 py-6 px-8 border-b border-gray-50 items-center"
+                >
                   <span className="text-[14px] text-blue-500 font-sofia-pro">
-                    {item.title} <span className="text-black font-bold">× {item.quantity}</span>
+                    {item.title}{" "}
+                    <span className="text-black font-bold">
+                      × {item.quantity}
+                    </span>
                   </span>
                   <span className="text-[14px] font-bold text-black font-sofia-pro text-right">
                     ${(Number(item.price) * item.quantity).toFixed(2)}
@@ -284,25 +352,41 @@ const OrderReceived = () => {
                 </div>
               ))
             )}
-            
+
             <div className="grid grid-cols-2 py-6 px-8 border-b border-gray-50 bg-gray-50/20">
-              <span className="text-[14px] font-bold text-black font-sofia-pro">Subtotal:</span>
-              <span className="text-[14px] font-bold text-black font-sofia-pro text-right">${subtotal.toFixed(2)}</span>
+              <span className="text-[14px] font-bold text-black font-sofia-pro">
+                Subtotal:
+              </span>
+              <span className="text-[14px] font-bold text-black font-sofia-pro text-right">
+                ${subtotal.toFixed(2)}
+              </span>
             </div>
-            
+
             <div className="grid grid-cols-2 py-6 px-8 border-b border-gray-50">
-              <span className="text-[14px] font-bold text-black font-sofia-pro">Shipping:</span>
-              <span className="text-[14px] text-black/60 font-sofia-pro text-right">Free shipping</span>
+              <span className="text-[14px] font-bold text-black font-sofia-pro">
+                Shipping:
+              </span>
+              <span className="text-[14px] text-black/60 font-sofia-pro text-right">
+                Free shipping
+              </span>
             </div>
-            
+
             <div className="grid grid-cols-2 py-6 px-8 border-b border-gray-50 bg-gray-50/20">
-              <span className="text-[14px] font-bold text-black font-sofia-pro">Payment method:</span>
-              <span className="text-[14px] text-black/60 font-sofia-pro text-right">{paymentLabel}</span>
+              <span className="text-[14px] font-bold text-black font-sofia-pro">
+                Payment method:
+              </span>
+              <span className="text-[14px] text-black/60 font-sofia-pro text-right">
+                {paymentLabel}
+              </span>
             </div>
-            
+
             <div className="grid grid-cols-2 py-8 px-8 border-b border-gray-50">
-              <span className="text-[18px] font-bold text-black font-gt-walsheim uppercase tracking-widest">Total:</span>
-              <span className="text-[18px] font-bold text-black font-gt-walsheim text-right">${subtotal.toFixed(2)}</span>
+              <span className="text-[18px] font-bold text-black font-gt-walsheim uppercase tracking-widest">
+                Total:
+              </span>
+              <span className="text-[18px] font-bold text-black font-gt-walsheim text-right">
+                ${subtotal.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -318,18 +402,30 @@ const OrderReceived = () => {
               {order?.address ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">Full Name</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">
+                      Full Name
+                    </span>
                     <p className="font-bold text-black text-[17px]">
-                      {(order.address.firstName || "").trim()} {(order.address.lastName || "").trim()}
+                      {(order.address.firstName || "").trim()}{" "}
+                      {(order.address.lastName || "").trim()}
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">Address</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">
+                      Address
+                    </span>
                     <p className="leading-relaxed">
-                      {order.address.streetAddress || ""}<br />
-                      {order.address.apartment && <span className="text-black/60 italic">{order.address.apartment}<br /></span>}
-                      {order.address.zipCode || ""} {order.address.city || ""}<br />
+                      {order.address.streetAddress || ""}
+                      <br />
+                      {order.address.apartment && (
+                        <span className="text-black/60 italic">
+                          {order.address.apartment}
+                          <br />
+                        </span>
+                      )}
+                      {order.address.zipCode || ""} {order.address.city || ""}
+                      <br />
                       {order.address.state || ""}, {order.address.country || ""}
                     </p>
                   </div>
@@ -339,18 +435,24 @@ const OrderReceived = () => {
                       <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[14px] text-black/40 group-hover:text-black transition-colors">
                         <FiPhone />
                       </div>
-                      <span className="font-medium group-hover:text-black transition-colors">{order.address.phone || ""}</span>
+                      <span className="font-medium group-hover:text-black transition-colors">
+                        {order.address.phone || ""}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3 group">
                       <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[14px] text-black/40 group-hover:text-black transition-colors">
                         <FiMail />
                       </div>
-                      <span className="font-medium group-hover:text-black transition-colors">{order.address.email || ""}</span>
+                      <span className="font-medium group-hover:text-black transition-colors">
+                        {order.address.email || ""}
+                      </span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="text-black/40 italic">Information not available</p>
+                <p className="text-black/40 italic">
+                  Information not available
+                </p>
               )}
             </div>
           </div>
@@ -364,26 +466,42 @@ const OrderReceived = () => {
               {order?.address ? (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">Recipient</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">
+                      Recipient
+                    </span>
                     <p className="font-bold text-black text-[17px]">
-                      {(order.address.firstName || "").trim()} {(order.address.lastName || "").trim()}
+                      {(order.address.firstName || "").trim()}{" "}
+                      {(order.address.lastName || "").trim()}
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">Delivery Location</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-black/30 font-bold">
+                      Delivery Location
+                    </span>
                     <p className="leading-relaxed">
-                      {order.address.streetAddress || ""}<br />
-                      {order.address.apartment && <span className="text-black/60 italic">{order.address.apartment}<br /></span>}
-                      {order.address.city || ""}<br />
-                      {order.address.state || ""}<br />
-                      {order.address.zipCode || ""}<br />
+                      {order.address.streetAddress || ""}
+                      <br />
+                      {order.address.apartment && (
+                        <span className="text-black/60 italic">
+                          {order.address.apartment}
+                          <br />
+                        </span>
+                      )}
+                      {order.address.city || ""}
+                      <br />
+                      {order.address.state || ""}
+                      <br />
+                      {order.address.zipCode || ""}
+                      <br />
                       {order.address.country || ""}
                     </p>
                   </div>
                 </div>
               ) : (
-                <p className="text-black/40 italic">Information not available</p>
+                <p className="text-black/40 italic">
+                  Information not available
+                </p>
               )}
             </div>
           </div>
