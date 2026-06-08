@@ -18,3 +18,24 @@ userRequest.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Add response interceptor to handle expired token (403 or 401)
+userRequest.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      // Clear admin session
+      sessionStorage.removeItem("adminToken");
+      sessionStorage.removeItem("adminUser");
+
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  },
+);

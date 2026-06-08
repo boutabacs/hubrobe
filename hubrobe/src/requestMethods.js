@@ -26,3 +26,25 @@ userRequest.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Ajouter un intercepteur pour gérer les erreurs de token expiré (403 ou 401)
+userRequest.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403)
+    ) {
+      // Si le token est expiré ou invalide, on déconnecte l'utilisateur
+      sessionStorage.removeItem("user");
+      localStorage.removeItem("user");
+      Cookies.remove("user");
+
+      // On redirige vers la page de login seulement si on n'y est pas déjà
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  },
+);
